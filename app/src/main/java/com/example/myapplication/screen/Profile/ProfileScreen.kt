@@ -44,14 +44,12 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavHostControlle
         AccountSettings()
         Spacer(modifier = Modifier.height(15.dp))
         Column (modifier = Modifier
-//                            .padding(bottom = 193.dp)
             .background(color = bgGrey)
             .fillMaxWidth()
             .height(195.dp)
 
         ){  }
-//
-        BottomMenu()
+
     }
 
 
@@ -187,50 +185,50 @@ fun AccountSettingsString(imageway : Int, settingsection : String){
         )
     }
 }
-@Composable
-fun BottomMenu(){
-    Row (modifier = Modifier
-        .fillMaxWidth()
-        .background(bgGreyDark)){
-        Column (modifier = Modifier.fillMaxWidth(0.33f).padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally){
-            Image(
-                modifier = Modifier.size(30.dp),
-                painter = painterResource(R.drawable.account_human),
-                contentDescription = "contacts"
-            )
-            Text(
-                text = "Контакты",
-                color = txtGreyLight,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        Column (modifier = Modifier.fillMaxWidth(0.5f).padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally){
-            Image(
-                modifier = Modifier.size(30.dp),
-                painter = painterResource(R.drawable.account_chatsmenu),
-                contentDescription = "chats"
-            )
-            Text(
-                text = "Чаты",
-                color = txtGreyLight,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        Column (modifier = Modifier.fillMaxWidth(1.0f).padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally){
-            Image(
-                modifier = Modifier.size(30.dp)
-                    .border(width = 2.dp,txtMainSelected, shape = CircleShape),
-                painter = painterResource(R.drawable.account_denis),
-                contentDescription = "profile"
-            )
-            Text(
-                text = "Денис",
-                color = txtMainSelected,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
+//@Composable
+//fun BottomMenu(){
+//    Row (modifier = Modifier
+//        .fillMaxWidth()
+//        .background(bgGreyDark)){
+//        Column (modifier = Modifier.fillMaxWidth(0.33f).padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally){
+//            Image(
+//                modifier = Modifier.size(30.dp),
+//                painter = painterResource(R.drawable.account_human),
+//                contentDescription = "contacts"
+//            )
+//            Text(
+//                text = "Контакты",
+//                color = txtGreyLight,
+//                fontSize = 10.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
+//        Column (modifier = Modifier.fillMaxWidth(0.5f).padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally){
+//            Image(
+//                modifier = Modifier.size(30.dp),
+//                painter = painterResource(R.drawable.account_chatsmenu),
+//                contentDescription = "chats"
+//            )
+//            Text(
+//                text = "Чаты",
+//                color = txtGreyLight,
+//                fontSize = 10.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
+//        Column (modifier = Modifier.fillMaxWidth(1.0f).padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally){
+//            Image(
+//                modifier = Modifier.size(30.dp)
+//                    .border(width = 2.dp,txtMainSelected, shape = CircleShape),
+//                painter = painterResource(R.drawable.account_denis),
+//                contentDescription = "profile"
+//            )
+//            Text(
+//                text = "Денис",
+//                color = txtMainSelected,
+//                fontSize = 10.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
+//    }
+//}

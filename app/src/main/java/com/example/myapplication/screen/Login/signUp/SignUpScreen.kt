@@ -42,7 +42,6 @@ fun SignUpScreen(navController: NavHostController) {
 
     val viewModel: SignUpViewModel = hiltViewModel()
     val uiState = viewModel.state.collectAsState()
-    var surname by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -81,23 +80,11 @@ fun SignUpScreen(navController: NavHostController) {
             fontSize = 20.sp
         )
         Spacer(modifier = Modifier.padding(50.dp))
-        OutlinedTextField(
-            value = surname,
-            onValueChange = { surname = it },
-            placeholder = {Text("Фамилия", color = txtGreyLight)},
-            modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .padding(bottom = 20.dp),
-            shape = RoundedCornerShape(50),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor= txtMainSelected,
-                unfocusedBorderColor = txtMainSelected
-            )
-        )
+
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            placeholder = {Text("Имя", color = txtGreyLight)},
+            placeholder = {Text("Имя пользователя", color = txtGreyLight)},
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .padding(bottom = 20.dp),
