@@ -1,5 +1,6 @@
 package com.example.myapplication.screen
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,10 +48,13 @@ import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
+    Log.d("proverka", "mainScreen открылся")
     val navController = rememberNavController()
     val currentUser = FirebaseAuth.getInstance().currentUser
+    Log.d("proverka", currentUser.toString())
     val start = if (currentUser != null) "app" else "login"
 
+    Log.d("proverka", "mainScreen открылся2")
     NavHost(navController = navController, startDestination = start) {
         composable(route = "login") {
             SignInScreen(navController)

@@ -1,5 +1,6 @@
 package com.example.myapplication.screen
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -37,6 +38,8 @@ import com.example.myapplication.ui.theme.txtMainSelected
 
 @Composable
 fun AppScreen(navController: NavHostController,modifier: Modifier = Modifier) {
+    Log.d("proverka","appScreen открылся")
+
     val navItems = listOf(
         BottomItem(title = "Контакты", iconId = Icons.Default.AccountCircle),
         BottomItem(title = "Чаты", iconId = Icons.Default.Home, badgeCount = 5),
