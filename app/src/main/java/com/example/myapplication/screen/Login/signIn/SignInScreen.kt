@@ -15,6 +15,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,12 +26,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight.Companion.W700
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.myapplication.ui.theme.bgGrey
 import com.example.myapplication.ui.theme.bgGreyDark
 import com.example.myapplication.ui.theme.txtGreyLight
 import com.example.myapplication.ui.theme.txtMainSelected
@@ -118,7 +121,7 @@ fun SignInScreen(navController: NavHostController){
 
         )
         Button(
-            onClick = {},
+            onClick = { viewModel.signIn(email = email, password = password) },
             modifier = Modifier.size(width = 220.dp, height = 48.dp).padding(bottom = 10.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = txtMainSelected
@@ -131,9 +134,12 @@ fun SignInScreen(navController: NavHostController){
             )
         }
         Text(
-            text = "У вас нет учётной записи? Регистрация",
+            text = "У вас нет учётной записи?",
             color = txtGreyLight,
             fontSize = 12.sp
         )
+        TextButton(onClick = { navController.navigate(route = "signup") }) {
+            Text(fontWeight = W700, color = bgGrey, text = "Регистрация")
+        }
     }
 }
