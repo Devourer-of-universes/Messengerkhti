@@ -62,7 +62,6 @@ fun ContactElement(contact_id: Int){
     Column() {
         Row(
             modifier = Modifier
-                .background(color = bgGreyLight)
                 .fillMaxWidth()
                 .height(76.dp),
             verticalAlignment = Alignment.CenterVertically

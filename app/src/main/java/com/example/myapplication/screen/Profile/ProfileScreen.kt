@@ -38,15 +38,15 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavHostControlle
 
     Column(modifier = Modifier
         .background(color = bgGreyDark)
-        .fillMaxSize()) {
+        .fillMaxSize()
+        .padding(top = 30.dp)) {
         Header()
         AccountBaseInfo()
         AccountSettings()
         Spacer(modifier = Modifier.height(15.dp))
         Column (modifier = Modifier
             .background(color = bgGrey)
-            .fillMaxWidth()
-            .height(195.dp)
+            .fillMaxSize()
 
         ){  }
 
