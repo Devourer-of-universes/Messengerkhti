@@ -1,5 +1,6 @@
 package com.example.myapplication.screen
 
+import android.R.attr.type
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -26,11 +27,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.myapplication.bottomNavigation.BottomItem
 import com.example.myapplication.screen.Chat.ChatScreen
+import com.example.myapplication.screen.Chat.Message.MessageScreen
 import com.example.myapplication.screen.Contacts.ContactsScreen
 import com.example.myapplication.screen.Profile.ProfileScreen
 import com.example.myapplication.screen.Login.signIn.SignInScreen
@@ -41,20 +45,12 @@ import com.example.myapplication.ui.theme.txtMainSelected
 import com.example.myapplication.ui.theme.bgGrey
 import com.example.myapplication.ui.theme.txtMainSelected
 import com.google.firebase.auth.FirebaseAuth
-
-// ДОДЕЛАТЬ!!!
-// isError в signupscreen
-
-
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
-    Log.d("proverka", "mainScreen открылся")
     val navController = rememberNavController()
     val currentUser = FirebaseAuth.getInstance().currentUser
-    Log.d("proverka", currentUser.toString())
     val start = if (currentUser != null) "app" else "login"
 
-    Log.d("proverka", "mainScreen открылся2")
     NavHost(navController = navController, startDestination = start) {
         composable(route = "login") {
             SignInScreen(navController)
@@ -64,6 +60,14 @@ fun MainScreen(modifier: Modifier = Modifier) {
         }
         composable(route = "app") {
             AppScreen(navController)
+        }
+        composable(route = "chat/{channelId}", arguments = listOf(
+            navArgument("channelId"){
+                type = NavType.StringType
+            }
+        )) {
+            val channelId = it.arguments?.getString("channelId") ?: ""
+            MessageScreen(navController,channelId)
         }
     }
 }

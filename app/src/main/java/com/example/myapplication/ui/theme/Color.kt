@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.theme
 
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults.buttonColors
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 val Purple80 = Color(0xFFD0BCFF)
@@ -23,3 +26,14 @@ val bgGrey = Color(0xFF434343)
 val bgGreyDark = Color(0xFF373737)
 
 val bgBlueDark = Color(0xFF151419)
+
+val btnMainOrange: ButtonColors
+    @Composable
+    get() = buttonColors(
+        containerColor = Color(0xFFF56E0F),
+        contentColor = Color.White,
+        disabledContainerColor = Color(0xFF434343),
+        disabledContentColor = Color(0xFFF9F9F9))
+val bgItemCurUser = Color(0xFF919191)
+
+val bgItemSendUser = Color(0xFF797878)

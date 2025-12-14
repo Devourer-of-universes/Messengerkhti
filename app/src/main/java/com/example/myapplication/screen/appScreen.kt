@@ -129,8 +129,8 @@ fun ContentScreen(
             .background(bgGreyDark)
     ){
         when (selectedIndexed) {
-            0 -> ContactsScreen(modifier = modifier)
-            1 -> ChatScreen(modifier = modifier)
+            0 -> ContactsScreen(modifier = modifier, navController)
+            1 -> ChatScreen(modifier = modifier, navController)
             2 -> ProfileScreen(modifier = modifier, navController)
         }
     }

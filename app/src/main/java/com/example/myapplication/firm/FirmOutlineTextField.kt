@@ -44,6 +44,7 @@ fun FirmOutlineTextField(
      * Ошибка или нет
      * */
     error: Boolean = false,
+    search: Boolean,
 ) {
 
     var text by remember { mutableStateOf("") }
