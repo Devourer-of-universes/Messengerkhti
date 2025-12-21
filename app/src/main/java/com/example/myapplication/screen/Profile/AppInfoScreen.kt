@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.FloatingActionButton
@@ -38,6 +40,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -47,6 +50,7 @@ import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.screen.Chat.Message.ContentMessage
 import com.example.myapplication.screen.Chat.Message.MessageViewModel
 import com.example.myapplication.ui.theme.bgGreyDark
+import com.example.myapplication.ui.theme.txtMainSelected
 import com.example.myapplication.ui.theme.txtMainWhite
 
 @Composable
@@ -62,6 +66,7 @@ fun AppInfoScreen(navController: NavController) {
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize()
+
                 ) {
                     Box(
                         modifier = Modifier
@@ -113,7 +118,8 @@ fun AppInfoScreen(navController: NavController) {
                         )
 
                         Column(
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+                                .verticalScroll(rememberScrollState())
                         ) {
                             Text(
                                 text = "В создании принимали участие:",
@@ -121,10 +127,27 @@ fun AppInfoScreen(navController: NavController) {
                                 color = txtMainWhite
                             )
                             Row(modifier = Modifier.fillMaxSize()) {
-                                Column(modifier = Modifier.fillMaxWidth(0.5f)) {
-                                    CreatorCard("Разарботчик", R.drawable.account_human)
+                                Column(modifier = Modifier.fillMaxWidth(0.33f)) {
+                                    CreatorCard("Артём", R.drawable.accont_profileavatar)
+                                    CreatorCard("Андрей", R.drawable.profile_avatar_andrey)
+                                    CreatorCard("Дава", R.drawable.profile_avatar_dava)
+                                    CreatorCard("Илья", R.drawable.profile_avatar_ilya)
+                                    CreatorCard("Руслан", R.drawable.profile_avatar_ruslan)
                                 }
-                                Column(modifier = Modifier.fillMaxWidth(0.5f)) { }
+                                Column(modifier = Modifier.fillMaxWidth(0.5f)) {
+                                    CreatorCard("Димас", R.drawable.profile_avatar_dimas)
+                                    CreatorCard("Егор", R.drawable.profile_avatar_egor)
+                                    CreatorCard("Никита", R.drawable.profile_avatar_nikita)
+                                    CreatorCard("Витёк", R.drawable.profile_avatar_vitek)
+                                    CreatorCard("Эдик")
+                                }
+                                Column(modifier = Modifier.fillMaxWidth(1f)) {
+                                    CreatorCard("Максим О.", R.drawable.profile_avatar_osha)
+                                    CreatorCard("Ярик", R.drawable.profile_avatar_yorik)
+                                    CreatorCard("Сундуй", R.drawable.profile_avatar_sunduy)
+                                    CreatorCard("Саня")
+                                    CreatorCard("Максим И.")
+                                }
                             }
 
                         }
@@ -135,10 +158,10 @@ fun AppInfoScreen(navController: NavController) {
     )
 }
 @Composable
-fun CreatorCard(name: String, image: Int) {
+fun CreatorCard(name: String, image: Int? = null) {
     Column(
         modifier = Modifier
-            .padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 10.dp)
+            .padding(start = 5.dp, end = 5.dp, top = 5.dp, bottom = 5.dp)
             .background(
                 color = bgGreyDark,
                 shape = RoundedCornerShape(20.dp) // ← скругление фона
@@ -147,31 +170,62 @@ fun CreatorCard(name: String, image: Int) {
                 border = BorderStroke(2.dp, bgGreyDark), // ← цвет границы
                 shape = RoundedCornerShape(20.dp) // ← скругление границы
             )
-            .height(200.dp)
-            .fillMaxWidth()
+            .height(150.dp)
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(16.dp)
-        ) {
-            Image(
-                contentDescription = "creator_profile_image",
-                painter = painterResource(image),
+
+        if (image != null) {
+            Box(
                 modifier = Modifier
-                    .size(30.dp)
-                    .clip(RoundedCornerShape(16.dp)), // ← скругление картинки
-                contentScale = ContentScale.Crop
-            )
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(5.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    contentDescription = "creator_profile_image",
+                    painter = painterResource(image),
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(RoundedCornerShape(45.dp)), // ← скругление картинки
+                    contentScale = ContentScale.Crop
+                )
+            }
+        } else {
+            // Показываем первую букву если нет картинки
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(5.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .background(
+                            color = txtMainSelected, // любой цвет
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = name.first().toString().uppercase(), // первая буква
+                        fontSize = 48.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
+
 
         Text(
             text = name,
-            fontSize = 15.sp,
+            fontSize = 18.sp,
             color = txtMainWhite,
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(bottom = 16.dp)
                 .align(Alignment.CenterHorizontally)
         )
