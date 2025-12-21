@@ -39,6 +39,7 @@ import com.example.myapplication.screen.Contacts.ContactsScreen
 import com.example.myapplication.screen.Profile.ProfileScreen
 import com.example.myapplication.screen.Login.signIn.SignInScreen
 import com.example.myapplication.screen.Login.signUp.SignUpScreen
+import com.example.myapplication.screen.Profile.AppInfoScreen
 import com.example.myapplication.ui.theme.bgGreyDark
 import com.example.myapplication.ui.theme.bgGrey
 import com.example.myapplication.ui.theme.txtMainSelected
@@ -68,6 +69,9 @@ fun MainScreen(modifier: Modifier = Modifier) {
         )) {
             val channelId = it.arguments?.getString("channelId") ?: ""
             MessageScreen(navController,channelId)
+        }
+        composable(route = "appinfo") {
+            AppInfoScreen(navController)
         }
     }
 }

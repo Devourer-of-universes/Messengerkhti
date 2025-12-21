@@ -10,6 +10,7 @@ object DataMessanger {
 //    var isChangeUsername: Boolean = false
 
     val NODE_CHANNELS = "channels"
+    val NODE_INDIVIDUAL_MESSAGES = "individual_messages"
     val NODE_MESSAGES = "messages"
     val NODE_USERS = "users"
 

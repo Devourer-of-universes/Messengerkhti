@@ -21,6 +21,7 @@ import javax.inject.Inject
 
 class ContactsScreenViewModel @Inject constructor() : ViewModel() {
     private val firebaseDatabase = Firebase.database
+    private val firebaseAuth = FirebaseAuth.getInstance()
     private val _users = MutableStateFlow<List<UserData>>(emptyList())
     val users = _users.asStateFlow()
 
@@ -48,6 +49,13 @@ class ContactsScreenViewModel @Inject constructor() : ViewModel() {
                 }
             })
     }
-
+    fun getIndividualChatId(otherUserId: String): String {
+        val currentUserId = firebaseAuth.currentUser?.uid ?: return ""
+        return if (currentUserId < otherUserId) {
+            "${currentUserId}_${otherUserId}"
+        } else {
+            "${otherUserId}_${currentUserId}"
+        }
+    }
 
 }

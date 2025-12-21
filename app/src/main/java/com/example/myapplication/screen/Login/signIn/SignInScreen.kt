@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight.Companion.W700
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -92,8 +93,11 @@ fun SignInScreen(navController: NavHostController){
                 .padding(bottom = 20.dp),
             shape = RoundedCornerShape(50),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor= txtMainSelected,
-                unfocusedBorderColor = txtMainSelected
+                errorTextColor = Color.Red,
+                focusedTextColor = txtMainWhite,
+                focusedBorderColor = txtMainSelected,
+                unfocusedBorderColor = bgGrey,
+                unfocusedTextColor = txtMainWhite
             )
         )
         OutlinedTextField(
@@ -105,8 +109,11 @@ fun SignInScreen(navController: NavHostController){
                 .fillMaxWidth(0.8f),
             shape = RoundedCornerShape(50),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor= txtMainSelected,
-                unfocusedBorderColor = txtMainSelected,
+                errorTextColor = Color.Red,
+                focusedTextColor = txtMainWhite,
+                focusedBorderColor = txtMainSelected,
+                unfocusedBorderColor = bgGrey,
+                unfocusedTextColor = txtMainWhite
 
                 )
         )
@@ -139,7 +146,7 @@ fun SignInScreen(navController: NavHostController){
             fontSize = 12.sp
         )
         TextButton(onClick = { navController.navigate(route = "signup") }) {
-            Text(fontWeight = W700, color = bgGrey, text = "Регистрация")
+            Text(fontWeight = W700, color = txtGreyLight, text = "Регистрация")
         }
     }
 }

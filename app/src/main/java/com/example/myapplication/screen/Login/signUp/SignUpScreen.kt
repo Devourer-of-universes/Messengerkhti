@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.myapplication.ui.theme.bgGrey
 import com.example.myapplication.ui.theme.bgGreyDark
 import com.example.myapplication.ui.theme.txtGreyLight
 import com.example.myapplication.ui.theme.txtMainSelected
@@ -90,8 +92,11 @@ fun SignUpScreen(navController: NavHostController) {
                 .padding(bottom = 20.dp),
             shape = RoundedCornerShape(50),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor= txtMainSelected,
-                unfocusedBorderColor = txtMainSelected
+                errorTextColor = Color.Red,
+                focusedTextColor = txtMainWhite,
+                focusedBorderColor = txtMainSelected,
+                unfocusedBorderColor = bgGrey,
+                unfocusedTextColor = txtMainWhite
             )
         )
 
@@ -104,8 +109,11 @@ fun SignUpScreen(navController: NavHostController) {
                 .padding(bottom = 20.dp),
             shape = RoundedCornerShape(50),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor= txtMainSelected,
-                unfocusedBorderColor = txtMainSelected
+                errorTextColor = Color.Red,
+                focusedTextColor = txtMainWhite,
+                focusedBorderColor = txtMainSelected,
+                unfocusedBorderColor = bgGrey,
+                unfocusedTextColor = txtMainWhite
             )
         )
         OutlinedTextField(
@@ -118,8 +126,11 @@ fun SignUpScreen(navController: NavHostController) {
                 .padding(bottom = 20.dp),
             shape = RoundedCornerShape(50),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor= txtMainSelected,
-                unfocusedBorderColor = txtMainSelected,
+                errorTextColor = Color.Red,
+                focusedTextColor = txtMainWhite,
+                focusedBorderColor = txtMainSelected,
+                unfocusedBorderColor = bgGrey,
+                unfocusedTextColor = txtMainWhite
 
                 )
         )
@@ -132,8 +143,11 @@ fun SignUpScreen(navController: NavHostController) {
                 .fillMaxWidth(0.8f),
             shape = RoundedCornerShape(50),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor= txtMainSelected,
-                unfocusedBorderColor = txtMainSelected,
+                errorTextColor = Color.Red,
+                focusedTextColor = txtMainWhite,
+                focusedBorderColor = txtMainSelected,
+                unfocusedBorderColor = bgGrey,
+                unfocusedTextColor = txtMainWhite
 
 
                 )

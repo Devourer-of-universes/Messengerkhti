@@ -1,234 +1,537 @@
 package com.example.myapplication.screen.Profile
 
-import com.example.myapplication.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight.Companion.W500
+import androidx.compose.ui.text.font.FontWeight.Companion.W700
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.myapplication.DataMessanger.chatName
+import com.example.myapplication.R
+import com.example.myapplication.model.UserData
 import com.example.myapplication.ui.theme.bgGrey
 import com.example.myapplication.ui.theme.bgGreyDark
+import com.example.myapplication.ui.theme.bgGreyLight
+import com.example.myapplication.ui.theme.btnMainOrange
 import com.example.myapplication.ui.theme.txtGreyLight
 import com.example.myapplication.ui.theme.txtMainSelected
 import com.example.myapplication.ui.theme.txtMainWhite
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier, navController: NavHostController) {
 
-    Column(modifier = Modifier
-        .background(color = bgGreyDark)
-        .fillMaxSize()
-        .padding(top = 30.dp)) {
-        Header()
-        AccountBaseInfo()
-        AccountSettings()
-        Spacer(modifier = Modifier.height(15.dp))
-        Column (modifier = Modifier
-            .background(color = bgGrey)
-            .fillMaxSize()
+    val viewModel: ProfileScreenViewModel = hiltViewModel()
+    val userData = viewModel.userData.collectAsState()
 
-        ){  }
+    val isChangePhone = remember {
+        mutableStateOf(false)
+    }
+    val isChangeUsername = remember {
+        mutableStateOf(false)
+    }
+    val sheetState = rememberModalBottomSheetState()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.initProfile()
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                color = bgGrey
+            ),
+
+        ) {
+
+        HeaderProfile(navController, userData)
+
+        InfoProfile(
+            userData,
+            onPhoneClick = {
+                isChangePhone.value = true
+            },  // При клике на телефон — открываем диалог изменения телефона
+            onUsernameClick = {
+                isChangeUsername.value = true
+            }  // При клике на имя пользователя — открываем диалог изменения имени)
+        )
+        MenuApplication(navController)
 
     }
 
-
-}
-@Composable
-fun Header(){
-    Row (
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
-            .background(bgGreyDark)
-            .fillMaxWidth()
-            .height(220.dp)
-    ){
-
-        Column (
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(start = 140.dp, top = 33.dp)){
-            Image (
-                painter = painterResource(R.drawable.accont_profileavatar),
-                contentDescription = "avatar",
-                modifier =  Modifier
-                    .size(120.dp)
-                    .padding(bottom = 10.dp)
-            )
-
-            Text(
-                text = "Денис Шпигальский",
-                color = txtMainWhite,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                softWrap = true,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.width(150.dp)
-            )
+    if (isChangePhone.value) {
+        ModalBottomSheet(
+            containerColor = bgGreyDark,
+            modifier = Modifier
+                .background(txtMainWhite),
+            onDismissRequest = { isChangePhone.value = false },
+            sheetState = sheetState
+        ) {
+            ChangePhoneDialog {
+                viewModel.changePhone(it)
+                isChangePhone.value = false
+            }
         }
-        Box(modifier = Modifier.padding(top = 12.dp, end = 12.dp)){
+    }
+
+    if (isChangeUsername.value) {
+        ModalBottomSheet(
+            containerColor = bgGreyDark,
+            modifier = Modifier,
+            onDismissRequest = { isChangeUsername.value = false },
+            sheetState = sheetState
+        ) {
+            ChangeUsernameDialog {
+                viewModel.changeUsername(it)
+                isChangeUsername.value = false
+            }
+        }
+    }
+}
+
+@Composable
+fun HeaderProfile(navController: NavHostController, userData: State<UserData>) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = bgGreyDark
+            )
+            .height(175.dp)
+
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.accont_profileavatar),
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .shadow(3.dp, CircleShape)
+                        .clip(CircleShape)
+                        .clickable(
+                            onClick = {},
+                            indication = ripple(),
+                            interactionSource = remember { MutableInteractionSource() }
+                        ),
+
+                    )
+                Spacer(
+                    modifier = Modifier.size(15.dp)
+                )
+                Text(
+                    text = userData.value.name,
+                    color = txtMainWhite,
+                    fontSize = 20.sp
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            contentAlignment = Alignment.TopEnd
+        ) {
             Image(
                 painter = painterResource(R.drawable.account_exit_button),
-                contentDescription = "exit button",
-                modifier = Modifier.size(28.dp)
-            )
+                contentDescription = "",
+                modifier = Modifier
+                    .padding(10.dp)
+                    .size(30.dp)
+                    .clickable(
+                        onClick = {
+                            Firebase.auth.signOut()
+                            navController.navigate(route = "login")
+                        },
+                        indication = ripple(),
+                        interactionSource = remember { MutableInteractionSource() }
+                    ),
+
+                )
         }
+
+
     }
+
 }
+
 @Composable
-fun AccountBaseInfo(){
+fun InfoProfile(
+    userData: State<UserData>,
+    onPhoneClick: () -> Unit,
+    onUsernameClick: () -> Unit,
+) {
     Column {
         Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .background(bgGrey)
                 .fillMaxWidth()
-                .padding(start = 43.dp, end = 10.dp)
-                .height(53.dp)
+                .padding(horizontal = 20.dp, vertical = 15.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+
         ) {
             Text(
                 text = "Аккаунт",
                 color = txtMainWhite,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
+                fontSize = 20.sp,
+                fontWeight = W700
             )
+
             Image(
                 painter = painterResource(R.drawable.account_edit_button),
-                contentDescription = "edit account button",
-                Modifier.size(30.dp)
+                contentDescription = "",
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable(
+                        onClick = {},
+                        indication = ripple(),
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+            )
+
+        }
+
+        val tdxDataPhone = if(userData.value.phone == "Введите телефон") "Введите телефон" else "+7 ${userData.value.phone}"
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(2.dp, color = bgGreyDark)
+                .background(
+                    color = bgGreyDark
+                )
+                .padding(vertical = 10.dp)
+        ) {
+            ProfileRowAccounts(
+                txtHeader = "Номер телефона",
+                txtData = tdxDataPhone,
+                onClick = onPhoneClick
+            )
+            ProfileRowAccounts(
+                txtHeader = "Имя пользователя",
+                txtData = userData.value.userName,
+                onClick = onUsernameClick
             )
         }
-        AccountBaseInfoString("Номер телефона", "+7 906 191-18-87")
-        AccountBaseInfoString("Имя пользователя", "@barbarisdance")
     }
 }
+
 @Composable
-fun AccountBaseInfoString(header : String, content : String){
-    Row (horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 35.dp, end = 35.dp, top = 15.dp).fillMaxWidth()){
+fun ProfileRowAccounts(
+    txtHeader: String,
+    txtData: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 25.dp, vertical = 5.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
         Text(
-            text = header,
+            text = txtHeader,
             color = txtMainWhite,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold
+            fontSize = 16.sp,
         )
-        Text(
-            text = content,
-            color = txtMainSelected
-        )
+
+        TextButton(
+            onClick = onClick
+        ) {
+            Text(
+                text = txtData,
+                color = txtMainSelected,
+                fontSize = 16.sp,
+                fontWeight = W500,
+            )
+        }
     }
 }
+
 @Composable
-fun AccountSettings(){
-    Column (modifier = Modifier
-        .fillMaxWidth()
-        .padding(top = 15.dp)
-    ){
-        Row (
-//            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+fun MenuApplication(navController: NavHostController) {
+    Column {
+        Row(
             modifier = Modifier
-                .background(bgGrey)
                 .fillMaxWidth()
-                .padding(start = 43.dp, end = 10.dp)
-                .height(53.dp)
-        ){
+                .padding(horizontal = 20.dp, vertical = 15.dp),
+            verticalAlignment = Alignment.CenterVertically
+
+        ) {
             Text(
                 text = "Настройки",
                 color = txtMainWhite,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )  }
+                fontSize = 20.sp,
+                fontWeight = W700
+            )
+        }
 
-        AccountSettingsString(R.drawable.account_chatset, "Чаты")
-        AccountSettingsString(R.drawable.account_bell, "Уведомления")
-        AccountSettingsString(R.drawable.account_lock, "Конфиденциальность")
-        AccountSettingsString(R.drawable.account_info, "О приложении")
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(2.dp, color = bgGreyDark)
+                .background(
+                    color = bgGreyDark
+                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        onClick = {
+                            navController.navigate(
+                                "appinfo"
+                            )
+                        },
+                        indication = ripple(),
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+                    .padding(horizontal = 25.dp, vertical = 12.5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.account_info),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(35.dp)
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+                Text(
+                    text = "О приложении",
+                    color = txtMainWhite,
+                    fontSize = 18.sp,
+                )
+            }
+        }
     }
 }
-@Composable
-fun AccountSettingsString(imageway : Int, settingsection : String){
-    Row (
-        modifier = Modifier.padding(start = 35.dp, end = 35.dp, top = 15.dp).fillMaxWidth()
-    ){
-        Image(
-            painter = painterResource(imageway),
-            contentDescription = "settings icon",
-            modifier = Modifier.padding(end = 20.dp).size(30.dp)
-        )
-        Text(
-            text = settingsection,
-            color = txtMainWhite,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Normal
-        )
-    }
-}
+
 //@Composable
-//fun BottomMenu(){
-//    Row (modifier = Modifier
-//        .fillMaxWidth()
-//        .background(bgGreyDark)){
-//        Column (modifier = Modifier.fillMaxWidth(0.33f).padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally){
-//            Image(
-//                modifier = Modifier.size(30.dp),
-//                painter = painterResource(R.drawable.account_human),
-//                contentDescription = "contacts"
+//fun ProfileRowSettings(text: String, idPainterResource: Int,navController: NavHostController, paddingHorizontalRow: Dp = 25.dp, ) {
+//    Row(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .clickable(
+//                onClick = {
+//                    navController.navigate(
+//                        "appinfo"
+//
+//                    )
+//                },
+//                indication = ripple(),
+//                interactionSource = remember { MutableInteractionSource() }
 //            )
-//            Text(
-//                text = "Контакты",
-//                color = txtGreyLight,
-//                fontSize = 10.sp,
-//                fontWeight = FontWeight.Bold
-//            )
-//        }
-//        Column (modifier = Modifier.fillMaxWidth(0.5f).padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally){
-//            Image(
-//                modifier = Modifier.size(30.dp),
-//                painter = painterResource(R.drawable.account_chatsmenu),
-//                contentDescription = "chats"
-//            )
-//            Text(
-//                text = "Чаты",
-//                color = txtGreyLight,
-//                fontSize = 10.sp,
-//                fontWeight = FontWeight.Bold
-//            )
-//        }
-//        Column (modifier = Modifier.fillMaxWidth(1.0f).padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally){
-//            Image(
-//                modifier = Modifier.size(30.dp)
-//                    .border(width = 2.dp,txtMainSelected, shape = CircleShape),
-//                painter = painterResource(R.drawable.account_denis),
-//                contentDescription = "profile"
-//            )
-//            Text(
-//                text = "Денис",
-//                color = txtMainSelected,
-//                fontSize = 10.sp,
-//                fontWeight = FontWeight.Bold
-//            )
-//        }
+//            .padding(horizontal = paddingHorizontalRow, vertical = 12.5.dp),
+//        verticalAlignment = Alignment.CenterVertically
+//    ) {
+//        Image(
+//            painter = painterResource(idPainterResource),
+//            contentDescription = "",
+//            modifier = Modifier
+//                .size(35.dp)
+//        )
+//        Spacer(modifier = Modifier.size(10.dp))
+//        Text(
+//            text = text,
+//            color = txtMainWhite,
+//            fontSize = 18.sp,
+//        )
 //    }
 //}
+
+
+@Composable
+fun ChangePhoneDialog(onAddChannel: (String) -> Unit) {
+    val phoneNumber = remember {
+        mutableStateOf("")
+    }
+    Column(
+
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Изменить телефон",
+            color = txtGreyLight,
+            fontSize = 25.sp
+        )
+        Spacer(
+            modifier = Modifier.padding(8.dp)
+        )
+        TextField(
+            colors = TextFieldDefaults.colors(
+                unfocusedTextColor = bgGrey,
+                unfocusedContainerColor = bgGreyLight,
+                focusedTextColor = txtMainWhite,
+                focusedContainerColor = bgGreyLight,
+                focusedLabelColor = txtGreyLight,
+                unfocusedLabelColor = txtGreyLight,
+                cursorColor = txtMainSelected,
+                focusedIndicatorColor = txtMainSelected,
+
+                ),
+            value = phoneNumber.value,
+            onValueChange = {
+//                phoneNumber.value = it.filter { char -> char.isDigit() }.take(10)
+                phoneNumber.value = it
+                    .filter { it.isDigit() }
+                    .take(10)
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+//            visualTransformation = PhoneNumberVisualTransformation(),
+            placeholder = { Text("Введите номер без +7") },
+            label = {
+                Text(
+                    text = "Телефон"
+                )
+            },
+            singleLine = true,
+        )
+
+        Spacer(
+            modifier = Modifier.padding(8.dp)
+        )
+
+        Button(
+            onClick = {
+                onAddChannel(phoneNumber.value)
+            },
+            modifier = Modifier
+                .padding(horizontal = 40.dp, vertical = 5.dp),
+            colors = btnMainOrange,
+            enabled = phoneNumber.value.length == 10
+
+        ) {
+            Text(text = "Изменить")
+        }
+
+    }
+}
+
+
+@Composable
+fun ChangeUsernameDialog(onAddChannel: (String) -> Unit) {
+    val userName = remember {
+        mutableStateOf("")
+    }
+    Column(
+
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Изменить имя пользователя",
+            color = txtGreyLight,
+            fontSize = 25.sp
+        )
+        Spacer(
+            modifier = Modifier.padding(8.dp)
+        )
+        TextField(
+            colors = TextFieldDefaults.colors(
+                unfocusedTextColor = bgGrey,
+                unfocusedContainerColor = bgGreyLight,
+                focusedTextColor = txtMainWhite,
+                focusedContainerColor = bgGreyLight,
+                focusedLabelColor = txtGreyLight,
+                unfocusedLabelColor = txtGreyLight,
+                cursorColor = txtMainSelected,
+                focusedIndicatorColor = txtMainSelected,
+
+                ),
+            value = userName.value,
+            onValueChange = {
+                userName.value = it
+                    .take(25)
+            },
+            label = {
+                Text(
+                    text = "Имя пользователя"
+                )
+            },
+            singleLine = true,
+        )
+
+        Spacer(
+            modifier = Modifier.padding(8.dp)
+        )
+
+        Button(
+            onClick = {
+                onAddChannel(userName.value)
+            },
+            modifier = Modifier
+                .padding(horizontal = 40.dp, vertical = 5.dp),
+            colors = btnMainOrange,
+            enabled = userName.value.length >= 3
+        ) {
+            Text(text = "Изменить")
+        }
+
+    }
+}
+
+

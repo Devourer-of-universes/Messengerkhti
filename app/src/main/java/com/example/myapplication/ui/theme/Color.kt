@@ -17,6 +17,7 @@ val txtMainWhite = Color(0xFFF9F9F9)
 
 val txtMainSelected = Color(0xFFF56E0F)
 
+//val txtMainSelected = Color(0xFF00998A)
 val txtGreyLight = Color(0xFFCFCFCF)
 
 val bgGreyLight = Color(0xFF616060)

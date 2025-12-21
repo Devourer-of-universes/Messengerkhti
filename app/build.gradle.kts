@@ -67,6 +67,8 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-storage")
     implementation ("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity:17.1.2")
+    implementation("com.google.firebase:firebase-appcheck-ktx:17.1.2")
 //    implementation ("com.google.auth:google-auth-library-oauth2-http:1.40.0")
 
     implementation(libs.androidx.core.ktx)

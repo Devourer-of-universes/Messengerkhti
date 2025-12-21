@@ -21,6 +21,7 @@ class MainActivity : ComponentActivity() {
         Log.d("proverka","MainActivity открылся")
 
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme(){
