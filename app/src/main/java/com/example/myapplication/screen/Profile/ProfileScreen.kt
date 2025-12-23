@@ -189,7 +189,7 @@ fun HeaderProfile(navController: NavHostController, userData: State<UserData>) {
             contentAlignment = Alignment.TopEnd
         ) {
             Image(
-                painter = painterResource(R.drawable.account_exit_button),
+                painter = painterResource(R.drawable.account_logout),
                 contentDescription = "",
                 modifier = Modifier
                     .padding(10.dp)

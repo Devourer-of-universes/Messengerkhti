@@ -84,7 +84,7 @@ fun ContactsScreen(modifier: Modifier = Modifier,  navController: NavHostControl
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "ЧАТЫ",
+                        text = "Контакты",
                         fontSize = 25.sp,
                         color = txtMainWhite
                     )
@@ -177,7 +177,7 @@ fun ItemUser(users: UserData, onClick: () -> Unit) {
                 modifier = Modifier
 //                    .padding(top = 150.dp, bottom = 30.dp)
                     .size(30.dp),
-                painter = painterResource(R.drawable.messenger_icon_round), contentDescription = null,
+                painter = painterResource(R.drawable.user), contentDescription = null,
             )
 //            Text(
 //                text = users.name[0].uppercase(),

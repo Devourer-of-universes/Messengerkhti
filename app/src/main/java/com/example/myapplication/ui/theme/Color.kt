@@ -31,7 +31,7 @@ val bgBlueDark = Color(0xFF151419)
 val btnMainOrange: ButtonColors
     @Composable
     get() = buttonColors(
-        containerColor = Color(0xFFF56E0F),
+        containerColor = Color(0xFF00998A),
         contentColor = Color.White,
         disabledContainerColor = Color(0xFF434343),
         disabledContentColor = Color(0xFFF9F9F9))
