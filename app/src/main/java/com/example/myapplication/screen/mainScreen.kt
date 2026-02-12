@@ -40,14 +40,9 @@ import com.example.myapplication.screen.Profile.ProfileScreen
 import com.example.myapplication.screen.Login.signIn.SignInScreen
 import com.example.myapplication.screen.Login.signUp.SignUpScreen
 import com.example.myapplication.screen.Profile.AppInfoScreen
-import com.example.myapplication.ui.theme.bgGreyDark
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.txtMainSelected
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.txtMainSelected
 import com.google.firebase.auth.FirebaseAuth
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(onChangeAccent: (Color) -> Unit,modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val currentUser = FirebaseAuth.getInstance().currentUser
     val start = if (currentUser != null) "app" else "login"

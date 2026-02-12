@@ -31,9 +31,7 @@ import com.example.myapplication.bottomNavigation.BottomItem
 import com.example.myapplication.screen.Chat.ChatScreen
 import com.example.myapplication.screen.Contacts.ContactsScreen
 import com.example.myapplication.screen.Profile.ProfileScreen
-import com.example.myapplication.ui.theme.bgGreyDark
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.txtMainSelected
+
 
 
 @Composable

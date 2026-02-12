@@ -1,31 +1,40 @@
 package com.example.myapplication
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
+import androidx.compose.runtime.*
 import com.example.myapplication.screen.MainScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
-import com.example.myapplication.ui.theme.bgGrey
-import dagger.hilt.android.AndroidEntryPoint
+import com.example.myapplication.ui.theme.ThemeMode
+import com.example.myapplication.ui.theme.ThemeStorage
+import com.example.myapplication.ui.theme.accentOrange
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d("proverka","MainActivity открылся")
-
         super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
+
         setContent {
-            MyApplicationTheme(){
-                MainScreen()
+            // Загружаем сохранённые настройки
+            val savedAccent = remember { ThemeStorage.loadAccent(this) }
+            val savedThemeMode = remember { ThemeStorage.loadThemeMode(this) }
+
+            var currentAccent by remember { mutableStateOf(savedAccent) }
+            var currentThemeMode by remember { mutableStateOf(ThemeMode.fromInt(savedThemeMode)) }
+
+            MyApplicationTheme(
+                accentColor = currentAccent,
+                themeMode = currentThemeMode  // ← передаём режим темы
+            ) {
+                MainScreen(
+                    onChangeAccent = { newAccent ->
+                        currentAccent = newAccent
+                        // Сохраняем при изменении
+                        ThemeStorage.saveAccent(this@MainActivity, newAccent)
+                    }
+                )
             }
         }
     }

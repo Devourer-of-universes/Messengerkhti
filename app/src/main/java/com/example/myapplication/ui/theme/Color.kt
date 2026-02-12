@@ -13,28 +13,21 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
-val txtMainWhite = Color(0xFFF9F9F9)
 
-//val txtMainSelected = Color(0xFFF56E0F)
 
-val txtMainSelected = Color(0xFF00998A)
-val txtGreyLight = Color(0xFFCFCFCF)
 
-val bgGreyLight = Color(0xFF616060)
+val mainAccent = Color(0xFFF56E0F)
+val lightAccent = Color(0x80F56E0F)
 
-val bgGrey = Color(0xFF434343)
+val bgMainBack = Color(0xFFE8E8E8)
+val bgWhiteBack = Color(0xFFFDFDFD)
 
-val bgGreyDark = Color(0xFF373737)
+val txtMainBlack = Color(0xFF010101)
+val txtMainGrey = Color(0xFF9B9B9B)
+val txtMainWhite = Color(0xFFFFFFFF)
 
-val bgBlueDark = Color(0xFF151419)
-
-val btnMainOrange: ButtonColors
-    @Composable
-    get() = buttonColors(
-        containerColor = Color(0xFF00998A),
-        contentColor = Color.White,
-        disabledContainerColor = Color(0xFF434343),
-        disabledContentColor = Color(0xFFF9F9F9))
-val bgItemCurUser = Color(0xFF919191)
-
-val bgItemSendUser = Color(0xFF797878)
+// ---- Варианты акцентов для выбора ----
+val accentOrange = Color(0xFFF56E0F)
+val accentBlue = Color(0xFF2196F3)
+val accentGreen = Color(0xFF4CAF50)
+val accentPink = Color(0xFFE91E63)
