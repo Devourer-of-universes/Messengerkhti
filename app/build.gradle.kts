@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.compose.foundation)
     kapt(libs.dagger.hilt.compiler)
     implementation(libs.dagger.hilt.compose)
     implementation(libs.coil)

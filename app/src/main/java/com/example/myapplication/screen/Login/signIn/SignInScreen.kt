@@ -33,7 +33,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.example.myapplication.ui.theme.ThemeMode
 import com.example.myapplication.ui.theme.bgGrey
 import com.example.myapplication.ui.theme.bgGreyDark
 import com.example.myapplication.ui.theme.txtGreyLight
@@ -42,7 +44,9 @@ import com.example.myapplication.ui.theme.txtMainWhite
 
 
 @Composable
-fun SignInScreen(navController: NavHostController){
+fun SignInScreen(navController: NavController,
+                 currentThemeMode: ThemeMode,
+                 currentAccent: Color){
     Log.d("proverka","signinScreen открылся")
     val viewModel: SignInViewModel = hiltViewModel()
     val uiState = viewModel.state.collectAsState()

@@ -17,17 +17,21 @@ val Pink40 = Color(0xFF7D5260)
 
 
 val mainAccent = Color(0xFFF56E0F)
-val lightAccent = Color(0x80F56E0F)
 
-val bgMainBack = Color(0xFFE8E8E8)
-val bgWhiteBack = Color(0xFFFDFDFD)
+val bgMainLightTheme = Color(0xFFE8E8E8)
+val bgSecLightTheme = Color(0xFFFDFDFD)
 
 val txtMainBlack = Color(0xFF010101)
 val txtMainGrey = Color(0xFF9B9B9B)
 val txtMainWhite = Color(0xFFFFFFFF)
 
+val bgMainDarkTheme = Color(0xFF32343E)
+val bgSecDarkTheme = Color(0xFF3D3F4A)
 // ---- Варианты акцентов для выбора ----
 val accentOrange = Color(0xFFF56E0F)
-val accentBlue = Color(0xFF2196F3)
-val accentGreen = Color(0xFF4CAF50)
-val accentPink = Color(0xFFE91E63)
+val accentBlue = Color(0xFF5194FF)
+val accentCyan = Color(0xFF00CAB9)
+val accentGreen = Color(0xFF00A231)
+val accentYellow = Color(0xFFC0CA00)
+val accentMagenta = Color(0xFF9000A3)
+val accentRed = Color(0xFFCA0003)

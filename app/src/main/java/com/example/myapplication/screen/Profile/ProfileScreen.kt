@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight.Companion.W500
@@ -46,16 +47,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.R
 import com.example.myapplication.model.UserData
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.bgGreyDark
-import com.example.myapplication.ui.theme.bgGreyLight
-import com.example.myapplication.ui.theme.btnMainOrange
-import com.example.myapplication.ui.theme.txtGreyLight
-import com.example.myapplication.ui.theme.txtMainSelected
+import com.example.myapplication.ui.theme.ThemeMode
 import com.example.myapplication.ui.theme.txtMainWhite
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -63,7 +60,10 @@ import com.google.firebase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun ProfileScreen(modifier: Modifier = Modifier,
+                  navController: NavController,
+                  currentThemeMode: ThemeMode,
+                  currentAccent: Color) {
 
     val viewModel: ProfileScreenViewModel = hiltViewModel()
     val userData = viewModel.userData.collectAsState()
@@ -331,6 +331,34 @@ fun MenuApplication(navController: NavHostController) {
                     color = bgGreyDark
                 )
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        onClick = {
+                            navController.navigate(
+                                "settings"
+                            )
+                        },
+                        indication = ripple(),
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+                    .padding(horizontal = 25.dp, vertical = 12.5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.account_edit_button),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(35.dp)
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+                Text(
+                    text = "Настройки",
+                    color = txtMainWhite,
+                    fontSize = 18.sp,
+                )
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

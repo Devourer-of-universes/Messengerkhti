@@ -26,13 +26,18 @@ class MainActivity : ComponentActivity() {
 
             MyApplicationTheme(
                 accentColor = currentAccent,
-                themeMode = currentThemeMode  // ← передаём режим темы
+                themeMode = currentThemeMode
             ) {
                 MainScreen(
+                    currentAccent = currentAccent,
+                    currentThemeMode = currentThemeMode,
                     onChangeAccent = { newAccent ->
                         currentAccent = newAccent
-                        // Сохраняем при изменении
-                        ThemeStorage.saveAccent(this@MainActivity, newAccent)
+                        ThemeStorage.saveAccent(this, newAccent)
+                    },
+                    onChangeThemeMode = { newMode ->
+                        currentThemeMode = newMode
+                        ThemeStorage.saveThemeMode(this, newMode.value)
                     }
                 )
             }

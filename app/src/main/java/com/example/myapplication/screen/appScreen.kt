@@ -26,16 +26,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.myapplication.bottomNavigation.BottomItem
 import com.example.myapplication.screen.Chat.ChatScreen
 import com.example.myapplication.screen.Contacts.ContactsScreen
 import com.example.myapplication.screen.Profile.ProfileScreen
-
+import com.example.myapplication.ui.theme.ThemeMode
 
 
 @Composable
-fun AppScreen(navController: NavHostController,modifier: Modifier = Modifier) {
+fun AppScreen(navController: NavController,
+              currentThemeMode: ThemeMode,
+              currentAccent: Color,
+              modifier: Modifier = Modifier) {
     Log.d("proverka","appScreen открылся")
 
     val navItems = listOf(

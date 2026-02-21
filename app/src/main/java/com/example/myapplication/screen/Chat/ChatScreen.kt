@@ -46,12 +46,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.myapplication.DataMessanger
 import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.firm.FirmOutlineTextField
 import com.example.myapplication.model.Channel
 import com.example.myapplication.model.indivMessage
+import com.example.myapplication.ui.theme.ThemeMode
 import com.example.myapplication.ui.theme.bgGrey
 import com.example.myapplication.ui.theme.bgGreyDark
 import com.example.myapplication.ui.theme.bgGreyLight
@@ -65,7 +67,10 @@ import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun ChatScreen(modifier: Modifier = Modifier,
+               navController: NavController,
+               currentThemeMode: ThemeMode,
+               currentAccent: Color) {
     val viewModel = hiltViewModel<ChatViewModel>()
     val channels = viewModel.channels.collectAsState()
     val individualMessages = viewModel.individualMessages.collectAsState()

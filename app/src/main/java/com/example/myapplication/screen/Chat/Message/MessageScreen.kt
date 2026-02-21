@@ -56,6 +56,7 @@ import com.example.myapplication.DataMessanger
 import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.R
 import com.example.myapplication.model.Message
+import com.example.myapplication.ui.theme.ThemeMode
 import com.example.myapplication.ui.theme.bgGrey
 import com.example.myapplication.ui.theme.bgGreyDark
 import com.example.myapplication.ui.theme.bgItemCurUser
@@ -72,7 +73,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 @Composable
-fun MessageScreen(navController: NavController, channelId: String) {
+fun MessageScreen(navController: NavController,
+                  channelId: String,
+                  currentThemeMode: ThemeMode,
+                  currentAccent: Color) {
 
     val viewModel: MessageViewModel = hiltViewModel()
     val messages = viewModel.messages.collectAsState()

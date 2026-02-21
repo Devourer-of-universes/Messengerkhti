@@ -46,19 +46,19 @@ fun MyApplicationTheme(
         darkColorScheme(
             primary = accentColor,
             secondary = accentColor.copy(alpha = 0.5f),
-            background = Color(0xFF121212),
-            surface = Color(0xFF1E1E1E),
+            background = bgMainDarkTheme,
+            surface = bgSecDarkTheme,
             onBackground = txtMainWhite,
-            onSurface = txtMainWhite
+            onSurface = txtMainGrey
         )
     } else {
         lightColorScheme(
             primary = accentColor,
             secondary = accentColor.copy(alpha = 0.5f),
-            background = bgMainBack,
-            surface = bgWhiteBack,
+            background = bgMainLightTheme,
+            surface = bgSecLightTheme,
             onBackground = txtMainBlack,
-            onSurface = txtMainBlack
+            onSurface = txtMainGrey
         )
     }
 
