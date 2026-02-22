@@ -60,8 +60,7 @@ import com.example.myapplication.ui.theme.txtMainWhite
 @Composable
 fun ContactsScreen(modifier: Modifier = Modifier,
                    navController: NavController,
-                   currentThemeMode: ThemeMode,
-                   currentAccent: Color) {
+                   ) {
     val viewModel = hiltViewModel<ContactsScreenViewModel>()
     val chatViewModel = hiltViewModel<ChatViewModel>() // Получаем ChatViewModel
     val users = viewModel.users.collectAsState()

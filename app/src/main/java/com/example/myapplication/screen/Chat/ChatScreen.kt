@@ -69,8 +69,7 @@ import java.util.Date
 @Composable
 fun ChatScreen(modifier: Modifier = Modifier,
                navController: NavController,
-               currentThemeMode: ThemeMode,
-               currentAccent: Color) {
+               ) {
     val viewModel = hiltViewModel<ChatViewModel>()
     val channels = viewModel.channels.collectAsState()
     val individualMessages = viewModel.individualMessages.collectAsState()

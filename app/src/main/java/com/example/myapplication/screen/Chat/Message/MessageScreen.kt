@@ -75,8 +75,7 @@ import java.util.Date
 @Composable
 fun MessageScreen(navController: NavController,
                   channelId: String,
-                  currentThemeMode: ThemeMode,
-                  currentAccent: Color) {
+                  ) {
 
     val viewModel: MessageViewModel = hiltViewModel()
     val messages = viewModel.messages.collectAsState()

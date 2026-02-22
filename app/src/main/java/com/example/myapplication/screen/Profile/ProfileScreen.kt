@@ -62,8 +62,7 @@ import com.google.firebase.auth.auth
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier,
                   navController: NavController,
-                  currentThemeMode: ThemeMode,
-                  currentAccent: Color) {
+                  ) {
 
     val viewModel: ProfileScreenViewModel = hiltViewModel()
     val userData = viewModel.userData.collectAsState()

@@ -54,13 +54,13 @@ fun MainScreen(currentAccent: Color,
 
     NavHost(navController = navController, startDestination = start) {
         composable(route = "login") {
-            SignInScreen(navController, currentThemeMode, currentAccent)
+            SignInScreen(navController)
         }
         composable(route = "signup") {
-            SignUpScreen(navController, currentThemeMode, currentAccent)
+            SignUpScreen(navController)
         }
         composable(route = "app") {
-            AppScreen(navController, currentThemeMode, currentAccent)
+            AppScreen(navController)
         }
         composable(route = "chat/{channelId}", arguments = listOf(
             navArgument("channelId"){
@@ -68,10 +68,10 @@ fun MainScreen(currentAccent: Color,
             }
         )) {
             val channelId = it.arguments?.getString("channelId") ?: ""
-            MessageScreen(navController,channelId, currentThemeMode, currentAccent)
+            MessageScreen(navController,channelId)
         }
         composable(route = "appinfo") {
-            AppInfoScreen(navController, currentThemeMode, currentAccent)
+            AppInfoScreen(navController)
         }
         composable(route = "settings") {
             SettingsScreen(navController, currentThemeMode, onChangeThemeMode, currentAccent, onChangeAccent,)

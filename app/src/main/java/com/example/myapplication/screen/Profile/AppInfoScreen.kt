@@ -49,9 +49,7 @@ import androidx.navigation.NavHostController
 import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.screen.Chat.Message.ContentMessage
 import com.example.myapplication.screen.Chat.Message.MessageViewModel
-import com.example.myapplication.ui.theme.bgGreyDark
-import com.example.myapplication.ui.theme.txtMainSelected
-import com.example.myapplication.ui.theme.txtMainWhite
+
 
 @Composable
 fun AppInfoScreen(navController: NavController) {

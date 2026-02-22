@@ -43,8 +43,7 @@ import com.example.myapplication.ui.theme.txtMainWhite
 
 @Composable
 fun SignUpScreen(navController: NavController,
-                 currentThemeMode: ThemeMode,
-                 currentAccent: Color) {
+                 ) {
 
     val viewModel: SignUpViewModel = hiltViewModel()
     val uiState = viewModel.state.collectAsState()

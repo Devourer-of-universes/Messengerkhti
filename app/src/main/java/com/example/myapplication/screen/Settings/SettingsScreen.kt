@@ -35,9 +35,12 @@ fun SettingsScreen(
     currentAccent: Color,
     onChangeAccent: (Color) -> Unit,
 ) {
-    val col_bgmain = MaterialTheme.colorScheme.background
-    val col_bgtxt = MaterialTheme.colorScheme.onBackground
-    val col_ = MaterialTheme.colorScheme.
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
+    val c_surftxt = MaterialTheme.colorScheme.onSurface
+    val c_acc = MaterialTheme.colorScheme.primary
+    val c_accmin = MaterialTheme.colorScheme.secondary
 
     // ✅ 1. Объявляем переменные для переключателей
     var notificationsEnabled by remember { mutableStateOf(true) }
@@ -50,7 +53,7 @@ fun SettingsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(col_bgmain)
+                    .background(c_bg)
                     .padding(innerPadding)
             ) {
                 Column(
@@ -61,7 +64,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(60.dp)
-                            .background(col_bgmain),
+                            .background(c_acc),
                         contentAlignment = Alignment.Center
                     ) {
                         IconButton(
@@ -73,14 +76,14 @@ fun SettingsScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Назад",
-                                tint = col_bgtxt
+                                tint = c_bgtxt
                             )
                         }
 
                         Text(
                             text = "Настройки",
                             fontSize = 22.sp,
-                            color = col_bgtxt,
+                            color = c_bgtxt,
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }
@@ -291,22 +294,30 @@ fun SettingsSection(
     title: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
+    val c_surftxt = MaterialTheme.colorScheme.onSurface
+    val c_acc = MaterialTheme.colorScheme.primary
+    val c_accmin = MaterialTheme.colorScheme.secondary
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp)
+            .background(color = c_surf)
+
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = c_bgtxt,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = c_bg
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {

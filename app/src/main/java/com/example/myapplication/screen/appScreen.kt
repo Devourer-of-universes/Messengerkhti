@@ -36,10 +36,7 @@ import com.example.myapplication.ui.theme.ThemeMode
 
 
 @Composable
-fun AppScreen(navController: NavController,
-              currentThemeMode: ThemeMode,
-              currentAccent: Color,
-              modifier: Modifier = Modifier) {
+fun AppScreen(navController: NavController) {
     Log.d("proverka","appScreen открылся")
 
     val navItems = listOf(
@@ -56,7 +53,7 @@ fun AppScreen(navController: NavController,
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
-                containerColor = bgGreyDark,
+                containerColor = ,
                 tonalElevation = 0.dp,
 
                 ) {
@@ -113,7 +110,8 @@ fun AppScreen(navController: NavController,
         content = { innerPadding: PaddingValues -> //системный отступ для верхнего бара
 
             ContentScreen(modifier = Modifier
-                .padding(innerPadding), selectedIndexed, navController)
+                .padding(innerPadding), selectedIndexed, navController as NavHostController
+            )
 
         }
     )

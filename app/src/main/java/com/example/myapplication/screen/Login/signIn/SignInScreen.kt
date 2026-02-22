@@ -45,8 +45,7 @@ import com.example.myapplication.ui.theme.txtMainWhite
 
 @Composable
 fun SignInScreen(navController: NavController,
-                 currentThemeMode: ThemeMode,
-                 currentAccent: Color){
+                 ){
     Log.d("proverka","signinScreen открылся")
     val viewModel: SignInViewModel = hiltViewModel()
     val uiState = viewModel.state.collectAsState()
