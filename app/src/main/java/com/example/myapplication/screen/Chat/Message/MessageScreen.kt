@@ -29,6 +29,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -57,14 +58,11 @@ import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.R
 import com.example.myapplication.model.Message
 import com.example.myapplication.ui.theme.ThemeMode
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.bgGreyDark
-import com.example.myapplication.ui.theme.bgItemCurUser
-import com.example.myapplication.ui.theme.bgItemSendUser
-import com.example.myapplication.ui.theme.bgGreyLight
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.txtMainSelected
+import com.example.myapplication.ui.theme.accentBlue
+import com.example.myapplication.ui.theme.bgMainDarkTheme
+import com.example.myapplication.ui.theme.bgSecDarkTheme
 import com.example.myapplication.ui.theme.txtMainWhite
+
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.database.database
@@ -117,13 +115,13 @@ fun ContentMessage(
 
     Box(
         modifier = Modifier
-            .background(bgGreyDark)
+            .background(bgMainDarkTheme)
     ) {
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .background(
-                    color = bgGrey
+                    color = bgSecDarkTheme
                 ),
 
             ) {
@@ -159,6 +157,12 @@ fun ChatMessages(
         }
     }
 
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон //bgGrey
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный //txtMainWhite
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее).bgGreyLight
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст txtMainSelected)
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет /btnMainOrange
+    val c_accmin = MaterialTheme.colorScheme.secondary
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -168,7 +172,7 @@ fun ChatMessages(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
-                    .background(bgGreyDark)
+                    .background(bgMainDarkTheme)
                     .padding(bottom = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -224,7 +228,7 @@ fun ChatMessages(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
 //                .padding(8.dp)
-                .background(bgGreyLight),
+                .background(txtMainWhite),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
@@ -236,7 +240,7 @@ fun ChatMessages(
                 },
             ) {
                 Icon(
-                    tint = txtMainSelected,
+                    tint = c_surftxt,
                     imageVector = Icons.Filled.AttachFile,
                     contentDescription = "sendMessage"
                 )
@@ -245,14 +249,14 @@ fun ChatMessages(
             TextField(
                 modifier = Modifier.weight(1f),
                 colors = TextFieldDefaults.colors(
-                    unfocusedTextColor = bgGrey,
-                    unfocusedContainerColor = bgGreyLight,
+                    unfocusedTextColor = c_bg,
+                    unfocusedContainerColor = c_surf,
                     focusedTextColor = txtMainWhite,
-                    focusedContainerColor = bgGreyLight,
-                    focusedLabelColor = txtMainSelected,
-                    unfocusedLabelColor = txtMainSelected,
-                    cursorColor = txtMainSelected,
-                    focusedIndicatorColor = txtMainSelected,
+                    focusedContainerColor = c_surf,
+                    focusedLabelColor = c_surftxt,
+                    unfocusedLabelColor = c_surftxt,
+                    cursorColor = c_surftxt,
+                    focusedIndicatorColor = c_surftxt,
 
                     ),
                 value = msg.value,
@@ -281,7 +285,7 @@ fun ChatMessages(
                 },
             ) {
                 Icon(
-                    tint = txtMainSelected,
+                    tint = c_surftxt,
                     imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "sendMessage"
                 )
@@ -296,9 +300,9 @@ fun ChatMessages(
 fun ItemMessageOnChat(message: Message) {
     val isCurrentUser = message.senderId == Firebase.auth.currentUser?.uid
     val colorItem = if (isCurrentUser) {
-        bgItemCurUser
+        accentBlue
     } else {
-        bgItemSendUser
+        bgSecDarkTheme
     }
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp * 3 / 4
@@ -367,7 +371,7 @@ fun ItemMessageOnChat(message: Message) {
                 ) {
                     Text(
                         text = formattedDate,
-                        color = bgGreyDark,
+                        color = bgMainDarkTheme,
                         lineHeight = 11.sp,
                         fontSize = 10.sp
                     )
@@ -378,6 +382,4 @@ fun ItemMessageOnChat(message: Message) {
         }
 
     }
-
-
 }

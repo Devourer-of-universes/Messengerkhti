@@ -36,16 +36,16 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.myapplication.ui.theme.ThemeMode
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.bgGreyDark
-import com.example.myapplication.ui.theme.txtGreyLight
-import com.example.myapplication.ui.theme.txtMainSelected
+import com.example.myapplication.ui.theme.bgMainDarkTheme
+import com.example.myapplication.ui.theme.bgSecDarkTheme
+import com.example.myapplication.ui.theme.txtMainGrey
+
 import com.example.myapplication.ui.theme.txtMainWhite
 
 
 @Composable
 fun SignInScreen(navController: NavController,
-                 ){
+){
     Log.d("proverka","signinScreen открылся")
     val viewModel: SignInViewModel = hiltViewModel()
     val uiState = viewModel.state.collectAsState()
@@ -71,26 +71,26 @@ fun SignInScreen(navController: NavController,
     }
     Column (modifier = Modifier
         .fillMaxWidth()
-        .background(color = bgGreyDark)
+        .background(color = bgSecDarkTheme)
         .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally)
     {
         Spacer(modifier = Modifier.padding(50.dp))
         Text(
             text = "Добро пожаловать!",
-            color = txtMainSelected,
+            color = txtMainGrey,
             fontSize = 20.sp
         )
         Text(
             text = "Войдите в свой аккаунт",
-            color = txtMainSelected,
+            color = txtMainGrey,
             fontSize = 20.sp
         )
         Spacer(modifier = Modifier.padding(50.dp))
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            placeholder = {Text("Электронная почта", color = txtGreyLight)},
+            placeholder = {Text("Электронная почта", color = bgSecDarkTheme)},
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .padding(bottom = 20.dp),
@@ -98,15 +98,15 @@ fun SignInScreen(navController: NavController,
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
                 focusedTextColor = txtMainWhite,
-                focusedBorderColor = txtMainSelected,
-                unfocusedBorderColor = bgGrey,
+                focusedBorderColor = txtMainGrey,
+                unfocusedBorderColor = bgMainDarkTheme,
                 unfocusedTextColor = txtMainWhite
             )
         )
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            placeholder = {Text("Пароль", color = txtGreyLight)},
+            placeholder = {Text("Пароль", color = bgSecDarkTheme)},
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth(0.8f),
@@ -114,15 +114,15 @@ fun SignInScreen(navController: NavController,
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
                 focusedTextColor = txtMainWhite,
-                focusedBorderColor = txtMainSelected,
-                unfocusedBorderColor = bgGrey,
+                focusedBorderColor = txtMainGrey,
+                unfocusedBorderColor = bgMainDarkTheme,
                 unfocusedTextColor = txtMainWhite
 
-                )
+            )
         )
         Text(
             text = "Забыли пароль?",
-            color = txtGreyLight,
+            color = bgSecDarkTheme,
             fontSize = 12.sp,
             textAlign = TextAlign.Right,
             modifier = Modifier
@@ -134,7 +134,7 @@ fun SignInScreen(navController: NavController,
             onClick = { viewModel.signIn(email = email, password = password) },
             modifier = Modifier.size(width = 220.dp, height = 48.dp).padding(bottom = 10.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = txtMainSelected
+                containerColor = txtMainGrey
             )
         ) {
             Text(
@@ -145,11 +145,11 @@ fun SignInScreen(navController: NavController,
         }
         Text(
             text = "У вас нет учётной записи?",
-            color = txtGreyLight,
+            color = txtMainGrey,
             fontSize = 12.sp
         )
         TextButton(onClick = { navController.navigate(route = "signup") }) {
-            Text(fontWeight = W700, color = txtGreyLight, text = "Регистрация")
+            Text(fontWeight = W700, color = bgSecDarkTheme, text = "Регистрация")
         }
     }
 }

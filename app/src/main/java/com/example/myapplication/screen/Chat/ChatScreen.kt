@@ -18,11 +18,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -53,17 +56,7 @@ import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.firm.FirmOutlineTextField
 import com.example.myapplication.model.Channel
 import com.example.myapplication.model.indivMessage
-import com.example.myapplication.ui.theme.ThemeMode
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.bgGreyDark
-import com.example.myapplication.ui.theme.bgGreyLight
-import com.example.myapplication.ui.theme.bgItemCurUser
-import com.example.myapplication.ui.theme.btnMainOrange
-import com.example.myapplication.ui.theme.txtGreyLight
-import com.example.myapplication.ui.theme.txtMainSelected
-import com.example.myapplication.ui.theme.txtMainWhite
-import java.text.SimpleDateFormat
-import java.util.Date
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +74,13 @@ fun ChatScreen(modifier: Modifier = Modifier,
     val isActiveChannel = remember {
         mutableStateOf(true)
     }
-
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет
+    val c_accmin = MaterialTheme.colorScheme.secondary     //- это акцент с прозрачностью 0.5
+    val bgGreyBlack = MaterialTheme.colorScheme.primary
     Box(
         modifier = Modifier.fillMaxSize()
 
@@ -91,35 +90,37 @@ fun ChatScreen(modifier: Modifier = Modifier,
             modifier = modifier
                 .fillMaxSize()
                 .background(
-                    color = bgGrey
+                    color = bgGreyBlack
                 ),
 
             ) {
+//            item {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(30.dp)
+//                        .background(bgGreyDark)
+//                        .padding(top = 5.dp),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Text(
+//                        text = "ЧАТЫ",
+//                        fontSize = 25.sp,
+//                        color = txtMainWhite
+//                    )
+//
+//                }
+//            }
             item {
-                Box(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(30.dp)
-                        .background(bgGreyDark)
-                        .padding(top = 5.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "ЧАТЫ",
-                        fontSize = 25.sp,
-                        color = txtMainWhite
-                    )
-
-                }
-            }
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-//                        .height(50.dp)
-                        .background(bgGreyDark)
-                        .padding(bottom = 10.dp, top = 10.dp),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth(0.9f)
+                        .height(110.dp)
+                        .padding(top = 10.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(c_acc),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     var index by remember {
                         mutableStateOf("")
@@ -127,17 +128,36 @@ fun ChatScreen(modifier: Modifier = Modifier,
                     OutlinedTextField(
                         value = index,
                         onValueChange = { index = it },
-                        placeholder = {Text("Поиск чата...", color = txtGreyLight)},
+                        placeholder = {
+                            Text(
+                                text = "Поиск чата...",
+                                color = c_surftxt,
+                                fontSize = 16.sp,
+                                maxLines = 1
+
+                            )
+                        },
+                        // Параметр leadingIcon вынесен из placeholder
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Поиск",
+                                modifier = Modifier.padding(start = 12.dp),
+                                tint = c_bgtxt
+                            )
+                        },
                         modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .padding(bottom = 20.dp),
+                            .height(50.dp)
+                            .fillMaxWidth(0.75f), // Немного увеличил ширину для удобства
                         shape = RoundedCornerShape(50),
+                        singleLine = true, // Чтобы текст не переносился
                         colors = OutlinedTextFieldDefaults.colors(
-                            errorTextColor = Color.Red,
-                            focusedTextColor = txtMainWhite,
-                            focusedBorderColor = txtMainSelected,
-                            unfocusedBorderColor = bgGrey,
-                            unfocusedTextColor = txtMainWhite
+                            focusedContainerColor = c_surf,
+                            unfocusedContainerColor = c_surf,
+                            focusedTextColor = c_bgtxt,
+                            unfocusedTextColor = c_bgtxt,
+                            focusedBorderColor = Color.Transparent, // Убираем рамку, если нужен стиль "капсулы"
+                            unfocusedBorderColor = Color.Transparent
                         )
                     )
                 }
@@ -149,8 +169,8 @@ fun ChatScreen(modifier: Modifier = Modifier,
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
 
-                    val colorSelected = txtMainSelected
-                    val colorUnSelected = bgItemCurUser
+                    val colorSelected = c_acc //selected
+                    val colorUnSelected = c_surftxt
 
 
                     if (isActiveChannel.value == true) {
@@ -169,7 +189,16 @@ fun ChatScreen(modifier: Modifier = Modifier,
                                 text = "Личные",
                                 fontSize = 25.sp
                             )
+                            TextButton(onClick = { isActiveChannel.value = false }) {
+                                Text(
+                                    fontWeight = W700,
+                                    color = colorUnSelected,
+                                    text = "Проекты",
+                                    fontSize = 25.sp
+                                )
+                            }
                         }
+
                     } else {
                         TextButton(onClick = { isActiveChannel.value = true }) {
                             Text(
@@ -187,14 +216,24 @@ fun ChatScreen(modifier: Modifier = Modifier,
                                 fontSize = 25.sp
                             )
                         }
+                        TextButton(onClick = { isActiveChannel.value = false }) {
+                            Text(
+                                fontWeight = W700,
+                                color = colorSelected,
+                                text = "Проекты",
+                                fontSize = 25.sp
+                            )
+                        }
                     }
+
 
                 }
             }
 
+
             item {
                 HorizontalDivider(
-                    color = bgGreyLight,
+                    color = c_bgtxt, //bgGreyLight,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(2.dp)
@@ -228,8 +267,8 @@ fun ChatScreen(modifier: Modifier = Modifier,
         }
         if (isActiveChannel.value) {
             FloatingActionButton(
-                contentColor = txtMainWhite,
-                containerColor = txtMainSelected,
+                contentColor = c_bgtxt,
+                containerColor = c_acc,
                 shape = CircleShape,
                 modifier = modifier
                     .align(
@@ -251,7 +290,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
 
     if (addChannel.value) {
         ModalBottomSheet(
-            containerColor = bgGreyDark,
+            containerColor = c_surf,
 
             onDismissRequest = { addChannel.value = false },
             sheetState = sheetState
@@ -272,10 +311,15 @@ fun ItemChatIndMassage(indivMessage: indivMessage, onClick: () -> Unit) {
 //    val date = Date(channel.createdAT)
 //    val sdf = SimpleDateFormat("dd/MM/yy HH:mm ")
 //    val formattedDate = sdf.format(date)
-
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет
+    val c_accmin = MaterialTheme.colorScheme.secondary
     Row(
         modifier = Modifier
-            .background(bgGreyDark)
+            .background(color = c_surf)
             .fillMaxWidth()
             .height(75.dp)
             .padding(horizontal = 8.dp)
@@ -288,13 +332,13 @@ fun ItemChatIndMassage(indivMessage: indivMessage, onClick: () -> Unit) {
             modifier = Modifier
                 .clip(CircleShape)
                 .size(50.dp)
-                .background(txtMainSelected)
+                .background(c_acc)
                 .padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = indivMessage.name[0].uppercase(),
-                color = txtMainWhite,
+                color = c_bgtxt,//txtMainWhite,
                 fontSize = 30.sp,
             )
         }
@@ -305,7 +349,7 @@ fun ItemChatIndMassage(indivMessage: indivMessage, onClick: () -> Unit) {
             Text(
                 text = indivMessage.name,
                 fontSize = 20.sp,
-                color = txtMainWhite
+                color = c_bgtxt //txtMainWhite
             )
 //            Text(
 //                text = formattedDate,
@@ -315,7 +359,7 @@ fun ItemChatIndMassage(indivMessage: indivMessage, onClick: () -> Unit) {
         }
     }
     HorizontalDivider(
-        color = bgGreyLight,
+        color = c_surftxt,//= bgGreyLight,
         modifier = Modifier
             .fillMaxWidth()
             .height(2.dp)
@@ -328,29 +372,35 @@ fun ItemChatChannel(channel: Channel, onClick: () -> Unit) {
 //    val date = Date(channel.createdAT)
 //    val sdf = SimpleDateFormat("dd/MM/yy HH:mm ")
 //    val formattedDate = sdf.format(date)
-
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет
+    val c_accmin = MaterialTheme.colorScheme.secondary
     Row(
         modifier = Modifier
-            .background(bgGreyDark)
-            .fillMaxWidth()
+            .background(c_surf)
+            .fillMaxWidth(0.9f)
             .height(75.dp)
             .padding(horizontal = 8.dp)
             .clickable {
                 onClick()
-            },
+            }
+            .clip(RoundedCornerShape(24.dp)),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .clip(CircleShape)
+                .clip(RoundedCornerShape(12.dp))
                 .size(50.dp)
-                .background(txtMainSelected)
+                .background(c_accmin)//txtMainSelected)
                 .padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = channel.name[0].uppercase(),
-                color = txtMainWhite,
+                color = c_bgtxt, //txtMainWhite,
                 fontSize = 30.sp,
             )
         }
@@ -361,7 +411,7 @@ fun ItemChatChannel(channel: Channel, onClick: () -> Unit) {
             Text(
                 text = channel.name,
                 fontSize = 20.sp,
-                color = txtMainWhite
+                color = c_bgtxt //txtMainWhite
             )
 //            Text(
 //                text = formattedDate,
@@ -371,7 +421,7 @@ fun ItemChatChannel(channel: Channel, onClick: () -> Unit) {
         }
     }
     HorizontalDivider(
-        color = bgGreyLight,
+        color = c_surftxt, //bgGreyLight,
         modifier = Modifier
             .fillMaxWidth()
             .height(2.dp)
@@ -384,6 +434,12 @@ fun AddChannelDialog(onAddChannel: (String) -> Unit) {
     val channelName = remember {
         mutableStateOf("")
     }
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон //bgGrey
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный //txtMainWhite
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее).bgGreyLight
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст txtMainSelected)
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет /btnMainOrange
+    val c_accmin = MaterialTheme.colorScheme.secondary
     Column(
 
         modifier = Modifier
@@ -394,7 +450,7 @@ fun AddChannelDialog(onAddChannel: (String) -> Unit) {
     ) {
         Text(
             text = "Добавить канал",
-            color = txtMainWhite,
+            color = c_bgtxt, //txtMainWhite,
             fontSize = 25.sp
         )
         Spacer(
@@ -402,14 +458,14 @@ fun AddChannelDialog(onAddChannel: (String) -> Unit) {
         )
         TextField(
             colors = TextFieldDefaults.colors(
-                unfocusedTextColor = bgGrey,
-                unfocusedContainerColor = bgGreyLight,
-                focusedTextColor = txtMainWhite,
-                focusedContainerColor = bgGreyLight,
-                focusedLabelColor = txtMainWhite,
-                unfocusedLabelColor = txtMainWhite,
-                cursorColor = txtMainSelected,
-                focusedIndicatorColor = txtMainSelected,
+                unfocusedTextColor = c_bg, //bgGrey,
+                unfocusedContainerColor = c_surf,
+                focusedTextColor = c_bgtxt,
+                focusedContainerColor = c_surf,
+                focusedLabelColor = c_bgtxt,
+                unfocusedLabelColor = c_bgtxt,
+                cursorColor = c_surftxt,
+                focusedIndicatorColor = c_surftxt,
 
                 ),
             value = channelName.value,
@@ -435,7 +491,9 @@ fun AddChannelDialog(onAddChannel: (String) -> Unit) {
             },
             modifier = Modifier
                 .padding(horizontal = 40.dp, vertical = 5.dp),
-            colors = btnMainOrange
+            colors = ButtonDefaults.buttonColors(
+                c_acc
+            )//btnMainOrange
         ) {
             Text(text = "Добавить")
         }

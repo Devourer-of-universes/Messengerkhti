@@ -10,7 +10,9 @@ import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.ThemeMode
 import com.example.myapplication.ui.theme.ThemeStorage
 import com.example.myapplication.ui.theme.accentOrange
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

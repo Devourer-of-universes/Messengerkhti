@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -53,6 +54,10 @@ import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.R
 import com.example.myapplication.model.UserData
 import com.example.myapplication.ui.theme.ThemeMode
+import com.example.myapplication.ui.theme.accentBlue
+import com.example.myapplication.ui.theme.bgMainDarkTheme
+import com.example.myapplication.ui.theme.bgSecDarkTheme
+import com.example.myapplication.ui.theme.txtMainGrey
 import com.example.myapplication.ui.theme.txtMainWhite
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -62,7 +67,7 @@ import com.google.firebase.auth.auth
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier,
                   navController: NavController,
-                  ) {
+) {
 
     val viewModel: ProfileScreenViewModel = hiltViewModel()
     val userData = viewModel.userData.collectAsState()
@@ -83,12 +88,12 @@ fun ProfileScreen(modifier: Modifier = Modifier,
         modifier = modifier
             .fillMaxSize()
             .background(
-                color = bgGrey
+                color = bgMainDarkTheme
             ),
 
         ) {
 
-        HeaderProfile(navController, userData)
+        HeaderProfile(navController as NavHostController, userData)
 
         InfoProfile(
             userData,
@@ -105,7 +110,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
 
     if (isChangePhone.value) {
         ModalBottomSheet(
-            containerColor = bgGreyDark,
+            containerColor = bgMainDarkTheme,
             modifier = Modifier
                 .background(txtMainWhite),
             onDismissRequest = { isChangePhone.value = false },
@@ -120,7 +125,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
 
     if (isChangeUsername.value) {
         ModalBottomSheet(
-            containerColor = bgGreyDark,
+            containerColor = bgMainDarkTheme,
             modifier = Modifier,
             onDismissRequest = { isChangeUsername.value = false },
             sheetState = sheetState
@@ -139,7 +144,7 @@ fun HeaderProfile(navController: NavHostController, userData: State<UserData>) {
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = bgGreyDark
+                color = bgMainDarkTheme
             )
             .height(175.dp)
 
@@ -251,9 +256,9 @@ fun InfoProfile(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(2.dp, color = bgGreyDark)
+                .border(2.dp, color = bgMainDarkTheme)
                 .background(
-                    color = bgGreyDark
+                    color = bgMainDarkTheme
                 )
                 .padding(vertical = 10.dp)
         ) {
@@ -296,7 +301,7 @@ fun ProfileRowAccounts(
         ) {
             Text(
                 text = txtData,
-                color = txtMainSelected,
+                color = txtMainWhite,
                 fontSize = 16.sp,
                 fontWeight = W500,
             )
@@ -325,9 +330,9 @@ fun MenuApplication(navController: NavHostController) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(2.dp, color = bgGreyDark)
+                .border(2.dp, color = bgMainDarkTheme)
                 .background(
-                    color = bgGreyDark
+                    color = bgMainDarkTheme
                 )
         ) {
             Row(
@@ -439,7 +444,7 @@ fun ChangePhoneDialog(onAddChannel: (String) -> Unit) {
     ) {
         Text(
             text = "Изменить телефон",
-            color = txtGreyLight,
+            color = txtMainGrey,
             fontSize = 25.sp
         )
         Spacer(
@@ -447,14 +452,14 @@ fun ChangePhoneDialog(onAddChannel: (String) -> Unit) {
         )
         TextField(
             colors = TextFieldDefaults.colors(
-                unfocusedTextColor = bgGrey,
-                unfocusedContainerColor = bgGreyLight,
+                unfocusedTextColor = bgMainDarkTheme,
+                unfocusedContainerColor = bgSecDarkTheme,
                 focusedTextColor = txtMainWhite,
-                focusedContainerColor = bgGreyLight,
-                focusedLabelColor = txtGreyLight,
-                unfocusedLabelColor = txtGreyLight,
-                cursorColor = txtMainSelected,
-                focusedIndicatorColor = txtMainSelected,
+                focusedContainerColor = bgSecDarkTheme,
+                focusedLabelColor = txtMainWhite,
+                unfocusedLabelColor = txtMainWhite,
+                cursorColor = txtMainWhite,
+                focusedIndicatorColor = txtMainWhite,
 
                 ),
             value = phoneNumber.value,
@@ -485,7 +490,9 @@ fun ChangePhoneDialog(onAddChannel: (String) -> Unit) {
             },
             modifier = Modifier
                 .padding(horizontal = 40.dp, vertical = 5.dp),
-            colors = btnMainOrange,
+            colors = ButtonDefaults.buttonColors(
+                accentBlue
+            ),
             enabled = phoneNumber.value.length == 10
 
         ) {
@@ -511,7 +518,7 @@ fun ChangeUsernameDialog(onAddChannel: (String) -> Unit) {
     ) {
         Text(
             text = "Изменить имя пользователя",
-            color = txtGreyLight,
+            color = txtMainGrey,
             fontSize = 25.sp
         )
         Spacer(
@@ -519,14 +526,14 @@ fun ChangeUsernameDialog(onAddChannel: (String) -> Unit) {
         )
         TextField(
             colors = TextFieldDefaults.colors(
-                unfocusedTextColor = bgGrey,
-                unfocusedContainerColor = bgGreyLight,
+                unfocusedTextColor = bgMainDarkTheme,
+                unfocusedContainerColor = txtMainWhite,
                 focusedTextColor = txtMainWhite,
-                focusedContainerColor = bgGreyLight,
-                focusedLabelColor = txtGreyLight,
-                unfocusedLabelColor = txtGreyLight,
-                cursorColor = txtMainSelected,
-                focusedIndicatorColor = txtMainSelected,
+                focusedContainerColor = bgSecDarkTheme,
+                focusedLabelColor = txtMainWhite,
+                unfocusedLabelColor = txtMainWhite,
+                cursorColor = txtMainWhite,
+                focusedIndicatorColor = txtMainWhite,
 
                 ),
             value = userName.value,
@@ -552,7 +559,9 @@ fun ChangeUsernameDialog(onAddChannel: (String) -> Unit) {
             },
             modifier = Modifier
                 .padding(horizontal = 40.dp, vertical = 5.dp),
-            colors = btnMainOrange,
+            colors = ButtonDefaults.buttonColors(
+                accentBlue
+            ),
             enabled = userName.value.length >= 3
         ) {
             Text(text = "Изменить")
@@ -560,5 +569,3 @@ fun ChangeUsernameDialog(onAddChannel: (String) -> Unit) {
 
     }
 }
-
-

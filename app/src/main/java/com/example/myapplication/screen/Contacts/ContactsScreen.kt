@@ -50,17 +50,16 @@ import com.example.myapplication.model.UserData
 import com.example.myapplication.screen.Chat.AddChannelDialog
 import com.example.myapplication.screen.Chat.ChatViewModel
 import com.example.myapplication.ui.theme.ThemeMode
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.bgGreyDark
-import com.example.myapplication.ui.theme.bgGreyLight
-import com.example.myapplication.ui.theme.txtGreyLight
-import com.example.myapplication.ui.theme.txtMainSelected
+import com.example.myapplication.ui.theme.bgMainDarkTheme
+import com.example.myapplication.ui.theme.bgSecDarkTheme
+import com.example.myapplication.ui.theme.txtMainGrey
+
 import com.example.myapplication.ui.theme.txtMainWhite
 
 @Composable
 fun ContactsScreen(modifier: Modifier = Modifier,
                    navController: NavController,
-                   ) {
+) {
     val viewModel = hiltViewModel<ContactsScreenViewModel>()
     val chatViewModel = hiltViewModel<ChatViewModel>() // Получаем ChatViewModel
     val users = viewModel.users.collectAsState()
@@ -74,7 +73,7 @@ fun ContactsScreen(modifier: Modifier = Modifier,
             modifier = modifier
                 .fillMaxSize()
                 .background(
-                    color = bgGrey
+                    color = bgMainDarkTheme
                 ),
 
             ) {
@@ -83,7 +82,7 @@ fun ContactsScreen(modifier: Modifier = Modifier,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(30.dp)
-                        .background(bgGreyDark)
+                        .background(bgSecDarkTheme)
                         .padding(top = 5.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -100,7 +99,7 @@ fun ContactsScreen(modifier: Modifier = Modifier,
                     modifier = Modifier
                         .fillMaxWidth()
 //                        .height(50.dp)
-                        .background(bgGreyDark)
+                        .background(bgMainDarkTheme)
                         .padding(bottom = 10.dp, top = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -110,7 +109,7 @@ fun ContactsScreen(modifier: Modifier = Modifier,
                     OutlinedTextField(
                         value = index,
                         onValueChange = { index = it },
-                        placeholder = {Text("Поиск контакта...", color = txtGreyLight)},
+                        placeholder = {Text("Поиск контакта...", color = bgSecDarkTheme)},
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
                             .padding(bottom = 20.dp),
@@ -118,8 +117,8 @@ fun ContactsScreen(modifier: Modifier = Modifier,
                         colors = OutlinedTextFieldDefaults.colors(
                             errorTextColor = Color.Red,
                             focusedTextColor = txtMainWhite,
-                            focusedBorderColor = txtMainSelected,
-                            unfocusedBorderColor = bgGrey,
+                            focusedBorderColor = txtMainGrey,
+                            unfocusedBorderColor = bgMainDarkTheme,
                             unfocusedTextColor = txtMainWhite
                         )
                     )
@@ -127,7 +126,7 @@ fun ContactsScreen(modifier: Modifier = Modifier,
             }
             item {
                 HorizontalDivider(
-                    color = bgGreyLight,
+                    color = bgSecDarkTheme,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(2.dp)
@@ -160,7 +159,7 @@ fun ItemUser(users: UserData, onClick: () -> Unit) {
 
     Row(
         modifier = Modifier
-            .background(bgGreyDark)
+            .background(bgSecDarkTheme)
             .fillMaxWidth()
             .height(75.dp)
             .padding(horizontal = 8.dp)
@@ -173,7 +172,7 @@ fun ItemUser(users: UserData, onClick: () -> Unit) {
             modifier = Modifier
                 .clip(CircleShape)
                 .size(50.dp)
-                .background(txtMainSelected)
+                .background(txtMainGrey)
                 .padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -206,7 +205,7 @@ fun ItemUser(users: UserData, onClick: () -> Unit) {
         }
     }
     HorizontalDivider(
-        color = bgGreyLight,
+        color = bgSecDarkTheme,
         modifier = Modifier
             .fillMaxWidth()
             .height(2.dp)

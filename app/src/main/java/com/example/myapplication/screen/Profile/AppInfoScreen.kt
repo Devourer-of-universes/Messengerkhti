@@ -49,6 +49,8 @@ import androidx.navigation.NavHostController
 import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.screen.Chat.Message.ContentMessage
 import com.example.myapplication.screen.Chat.Message.MessageViewModel
+import com.example.myapplication.ui.theme.bgMainDarkTheme
+import com.example.myapplication.ui.theme.txtMainWhite
 
 
 @Composable
@@ -59,7 +61,7 @@ fun AppInfoScreen(navController: NavController) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(bgGreyDark)
+                    .background(bgMainDarkTheme)
                     .padding(innerPadding)
             ) {
                 Column(
@@ -70,7 +72,7 @@ fun AppInfoScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
-                            .background(bgGreyDark)
+                            .background(bgMainDarkTheme)
                             .padding(bottom = 16.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -106,7 +108,7 @@ fun AppInfoScreen(navController: NavController) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(bgGreyDark)
+                            .background(bgMainDarkTheme)
                     ) {
                         Image(
                             painter = painterResource(R.drawable.fon_pin),
@@ -161,11 +163,11 @@ fun CreatorCard(name: String, image: Int? = null) {
         modifier = Modifier
             .padding(start = 5.dp, end = 5.dp, top = 5.dp, bottom = 5.dp)
             .background(
-                color = bgGreyDark,
+                color = bgMainDarkTheme,
                 shape = RoundedCornerShape(20.dp) // ← скругление фона
             )
             .border(
-                border = BorderStroke(2.dp, bgGreyDark), // ← цвет границы
+                border = BorderStroke(2.dp, bgMainDarkTheme), // ← цвет границы
                 shape = RoundedCornerShape(20.dp) // ← скругление границы
             )
             .height(150.dp)
@@ -203,7 +205,7 @@ fun CreatorCard(name: String, image: Int? = null) {
                     modifier = Modifier
                         .size(90.dp)
                         .background(
-                            color = txtMainSelected, // любой цвет
+                            color = txtMainWhite, // любой цвет
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center

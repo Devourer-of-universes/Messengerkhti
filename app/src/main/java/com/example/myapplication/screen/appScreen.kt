@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -33,6 +35,7 @@ import com.example.myapplication.screen.Chat.ChatScreen
 import com.example.myapplication.screen.Contacts.ContactsScreen
 import com.example.myapplication.screen.Profile.ProfileScreen
 import com.example.myapplication.ui.theme.ThemeMode
+import com.example.myapplication.ui.theme.txtMainWhite
 
 
 @Composable
@@ -48,12 +51,16 @@ fun AppScreen(navController: NavController) {
     var selectedIndexed by remember {
         mutableIntStateOf(1)
     }
-
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет
+    val c_accmin = MaterialTheme.colorScheme.secondary     //- это акцент с прозрачностью 0.5
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
-                containerColor = ,
+                containerColor = c_accmin,
                 tonalElevation = 0.dp,
 
                 ) {
@@ -78,13 +85,14 @@ fun AppScreen(navController: NavController) {
                                     Icon(
                                         imageVector = navItem.iconId,
                                         contentDescription = "",
-                                        tint = txtMainSelected
+                                        modifier = Modifier.background(c_acc, shape = CircleShape),
+                                        tint = txtMainWhite
                                     )
                                 } else {
                                     Icon(
                                         imageVector = navItem.iconId,
                                         contentDescription = "",
-                                        tint = bgGrey
+                                        tint = txtMainWhite
                                     )
                                 }
                             }
@@ -93,11 +101,11 @@ fun AppScreen(navController: NavController) {
                         label = {
                             if (selectedIndexed == index) {
                                 Text(
-                                    color = txtMainSelected, text = navItem.title
+                                    color = txtMainWhite, text = navItem.title
                                 )
                             } else {
                                 Text(
-                                    color = bgGrey, text = navItem.title
+                                    color = txtMainWhite, text = navItem.title
                                 )
                             }
 
@@ -123,10 +131,10 @@ fun ContentScreen(
     selectedIndexed: Int,
     navController: NavHostController
 ) {
-
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
     Box(
         modifier = Modifier
-            .background(bgGreyDark)
+            .background(c_bg)
     ){
         when (selectedIndexed) {
             0 -> ContactsScreen(modifier = modifier, navController)

@@ -35,15 +35,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.myapplication.ui.theme.ThemeMode
-import com.example.myapplication.ui.theme.bgGrey
-import com.example.myapplication.ui.theme.bgGreyDark
-import com.example.myapplication.ui.theme.txtGreyLight
-import com.example.myapplication.ui.theme.txtMainSelected
+import com.example.myapplication.ui.theme.bgMainDarkTheme
+import com.example.myapplication.ui.theme.bgSecDarkTheme
+import com.example.myapplication.ui.theme.txtMainGrey
+
 import com.example.myapplication.ui.theme.txtMainWhite
 
 @Composable
 fun SignUpScreen(navController: NavController,
-                 ) {
+) {
 
     val viewModel: SignUpViewModel = hiltViewModel()
     val uiState = viewModel.state.collectAsState()
@@ -69,19 +69,19 @@ fun SignUpScreen(navController: NavController,
     }
     Column (modifier = Modifier
         .fillMaxWidth()
-        .background(color = bgGreyDark)
+        .background(color = bgMainDarkTheme)
         .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally)
     {
         Spacer(modifier = Modifier.padding(50.dp))
         Text(
             text = "Давайте начнём!",
-            color = txtMainSelected,
+            color = txtMainGrey,
             fontSize = 20.sp
         )
         Text(
             text = "Зарегистрируйте свой новый аккаунт",
-            color = txtMainSelected,
+            color = txtMainGrey,
             fontSize = 20.sp
         )
         Spacer(modifier = Modifier.padding(50.dp))
@@ -89,7 +89,7 @@ fun SignUpScreen(navController: NavController,
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            placeholder = {Text("Имя пользователя", color = txtGreyLight)},
+            placeholder = {Text("Имя пользователя", color = bgSecDarkTheme)},
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .padding(bottom = 20.dp),
@@ -97,8 +97,8 @@ fun SignUpScreen(navController: NavController,
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
                 focusedTextColor = txtMainWhite,
-                focusedBorderColor = txtMainSelected,
-                unfocusedBorderColor = bgGrey,
+                focusedBorderColor = txtMainGrey,
+                unfocusedBorderColor = bgMainDarkTheme,
                 unfocusedTextColor = txtMainWhite
             )
         )
@@ -106,7 +106,7 @@ fun SignUpScreen(navController: NavController,
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            placeholder = {Text("Электронная почта", color = txtGreyLight)},
+            placeholder = {Text("Электронная почта", color = txtMainGrey)},
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .padding(bottom = 20.dp),
@@ -114,15 +114,15 @@ fun SignUpScreen(navController: NavController,
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
                 focusedTextColor = txtMainWhite,
-                focusedBorderColor = txtMainSelected,
-                unfocusedBorderColor = bgGrey,
+                focusedBorderColor = txtMainGrey,
+                unfocusedBorderColor = bgMainDarkTheme,
                 unfocusedTextColor = txtMainWhite
             )
         )
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            placeholder = {Text("Пароль", color = txtGreyLight)},
+            placeholder = {Text("Пароль", color = bgSecDarkTheme)},
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth(0.8f)
@@ -131,16 +131,16 @@ fun SignUpScreen(navController: NavController,
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
                 focusedTextColor = txtMainWhite,
-                focusedBorderColor = txtMainSelected,
-                unfocusedBorderColor = bgGrey,
+                focusedBorderColor = txtMainGrey,
+                unfocusedBorderColor = bgSecDarkTheme,
                 unfocusedTextColor = txtMainWhite
 
-                )
+            )
         )
         OutlinedTextField(
             value = passwordRepeat,
             onValueChange = { passwordRepeat = it },
-            placeholder = {Text("Повторить пароль", color = txtGreyLight)},
+            placeholder = {Text("Повторить пароль", color = bgSecDarkTheme)},
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth(0.8f),
@@ -148,16 +148,16 @@ fun SignUpScreen(navController: NavController,
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
                 focusedTextColor = txtMainWhite,
-                focusedBorderColor = txtMainSelected,
-                unfocusedBorderColor = bgGrey,
+                focusedBorderColor = txtMainGrey,
+                unfocusedBorderColor = bgMainDarkTheme,
                 unfocusedTextColor = txtMainWhite
 
 
-                )
+            )
         )
         Text(
             text = "Создавая учётную запись вы соглашаетесь с нашими условиями использования и политикой конфиденциальности",
-            color = txtGreyLight,
+            color = txtMainGrey,
             fontSize = 12.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -168,7 +168,7 @@ fun SignUpScreen(navController: NavController,
             onClick = {},
             modifier = Modifier.size(width = 220.dp, height = 48.dp).padding(bottom = 10.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = txtMainSelected
+                containerColor = txtMainGrey
             )
         ) {
             Text(
@@ -179,7 +179,7 @@ fun SignUpScreen(navController: NavController,
         }
         Text(
             text = "У вас есть учётная запись? Авторизация",
-            color = txtGreyLight,
+            color = txtMainGrey,
             fontSize = 12.sp
         )
     }
