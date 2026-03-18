@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -25,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -82,12 +84,18 @@ fun AppScreen(navController: NavController) {
                                     }
                             ) {
                                 if (selectedIndexed == index) {
-                                    Icon(
-                                        imageVector = navItem.iconId,
-                                        contentDescription = "",
-                                        modifier = Modifier.background(c_acc, shape = CircleShape),
-                                        tint = txtMainWhite
-                                    )
+                                    Box(modifier = Modifier.background(c_acc, shape = CircleShape)
+                                        .size(70.dp),
+                                        contentAlignment = Alignment.Center
+                                        ){
+                                        Icon(
+                                            imageVector = navItem.iconId,
+                                            contentDescription = "",
+
+                                            tint = txtMainWhite
+                                        )
+                                    }
+
                                 } else {
                                     Icon(
                                         imageVector = navItem.iconId,

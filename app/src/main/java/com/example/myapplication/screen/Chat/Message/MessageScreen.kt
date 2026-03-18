@@ -172,7 +172,7 @@ fun ChatMessages(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
-                    .background(bgMainDarkTheme)
+                    .background(c_acc)
                     .padding(bottom = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -298,11 +298,17 @@ fun ChatMessages(
 
 @Composable
 fun ItemMessageOnChat(message: Message) {
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон //bgGrey
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный //txtMainWhite
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее).bgGreyLight
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст txtMainSelected)
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет /btnMainOrange
+    val c_accmin = MaterialTheme.colorScheme.secondary
     val isCurrentUser = message.senderId == Firebase.auth.currentUser?.uid
     val colorItem = if (isCurrentUser) {
-        accentBlue
+        c_acc
     } else {
-        bgSecDarkTheme
+        c_surf
     }
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp * 3 / 4
