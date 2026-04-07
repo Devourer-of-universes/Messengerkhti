@@ -1,5 +1,5 @@
 package com.example.myapplication.screen.Profile
-
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,11 +16,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,16 +48,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight.Companion.W500
 import androidx.compose.ui.text.font.FontWeight.Companion.W700
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import com.example.myapplication.DataMessanger.chatName
 import com.example.myapplication.R
 import com.example.myapplication.model.UserData
-import com.example.myapplication.ui.theme.ThemeMode
 import com.example.myapplication.ui.theme.accentBlue
 import com.example.myapplication.ui.theme.bgMainDarkTheme
 import com.example.myapplication.ui.theme.bgSecDarkTheme
@@ -61,7 +62,6 @@ import com.example.myapplication.ui.theme.txtMainGrey
 import com.example.myapplication.ui.theme.txtMainWhite
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,39 +80,64 @@ fun ProfileScreen(modifier: Modifier = Modifier,
     }
     val sheetState = rememberModalBottomSheetState()
 
+    // Создаем список элементов для LazyColumn
+    val profileItems = remember {
+        listOf(
+            ProfileItemType.Header,
+            ProfileItemType.Info,
+            ProfileItemType.Menu
+        )
+    }
+
     LaunchedEffect(key1 = true) {
         viewModel.initProfile()
     }
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
+    val c_surftxt = MaterialTheme.colorScheme.onSurface
+    val c_acc = MaterialTheme.colorScheme.primary
+    val c_accmin = MaterialTheme.colorScheme.secondary
 
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                color = bgMainDarkTheme
-            ),
+            .background(color = c_bg)
+    ) {
+        // Header
+        item {
+            HeaderProfile(navController, userData)
+        }
 
-        ) {
+        // Info Profile
+        item {
+            InfoProfile(
+                userData,
+                onPhoneClick = {
+                    isChangePhone.value = true
+                },
+                onUsernameClick = {
+                    isChangeUsername.value = true
+                }
+            )
+        }
 
-        HeaderProfile(navController as NavHostController, userData)
+        // Menu Application
+        item {
+            MenuApplication(navController)
+        }
 
-        InfoProfile(
-            userData,
-            onPhoneClick = {
-                isChangePhone.value = true
-            },  // При клике на телефон — открываем диалог изменения телефона
-            onUsernameClick = {
-                isChangeUsername.value = true
-            }  // При клике на имя пользователя — открываем диалог изменения имени)
-        )
-        MenuApplication(navController)
-
+        // Добавляем отступ внизу для удобства прокрутки
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 
     if (isChangePhone.value) {
         ModalBottomSheet(
             containerColor = bgMainDarkTheme,
             modifier = Modifier
-                .background(txtMainWhite),
+                .background(c_surf),
             onDismissRequest = { isChangePhone.value = false },
             sheetState = sheetState
         ) {
@@ -125,7 +150,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
 
     if (isChangeUsername.value) {
         ModalBottomSheet(
-            containerColor = bgMainDarkTheme,
+            containerColor = c_surf,
             modifier = Modifier,
             onDismissRequest = { isChangeUsername.value = false },
             sheetState = sheetState
@@ -138,25 +163,34 @@ fun ProfileScreen(modifier: Modifier = Modifier,
     }
 }
 
+// Перечисление для типов элементов (опционально)
+enum class ProfileItemType {
+    Header,
+    Info,
+    Menu
+}
+
 @Composable
-fun HeaderProfile(navController: NavHostController, userData: State<UserData>) {
+fun HeaderProfile(navController: NavController, userData: State<UserData>) {
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
+    val c_surftxt = MaterialTheme.colorScheme.onSurface
+    val c_acc = MaterialTheme.colorScheme.primary
+    val c_accmin = MaterialTheme.colorScheme.secondary
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                color = bgMainDarkTheme
-            )
+            .background(color = c_bg)
             .height(175.dp)
-
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxHeight(),
+                modifier = Modifier.fillMaxHeight(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -173,14 +207,11 @@ fun HeaderProfile(navController: NavHostController, userData: State<UserData>) {
                             indication = ripple(),
                             interactionSource = remember { MutableInteractionSource() }
                         ),
-
-                    )
-                Spacer(
-                    modifier = Modifier.size(15.dp)
                 )
+                Spacer(modifier = Modifier.size(15.dp))
                 Text(
                     text = userData.value.name,
-                    color = txtMainWhite,
+                    color = c_bgtxt,
                     fontSize = 20.sp
                 )
             }
@@ -206,13 +237,9 @@ fun HeaderProfile(navController: NavHostController, userData: State<UserData>) {
                         indication = ripple(),
                         interactionSource = remember { MutableInteractionSource() }
                     ),
-
-                )
+            )
         }
-
-
     }
-
 }
 
 @Composable
@@ -221,6 +248,13 @@ fun InfoProfile(
     onPhoneClick: () -> Unit,
     onUsernameClick: () -> Unit,
 ) {
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
+    val c_surftxt = MaterialTheme.colorScheme.onSurface
+    val c_acc = MaterialTheme.colorScheme.primary
+    val c_accmin = MaterialTheme.colorScheme.secondary
+
     Column {
         Row(
             modifier = Modifier
@@ -228,11 +262,10 @@ fun InfoProfile(
                 .padding(horizontal = 20.dp, vertical = 15.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
-
         ) {
             Text(
-                text = "Аккаунт",
-                color = txtMainWhite,
+                text = "Личная информация",
+                color = c_bgtxt,
                 fontSize = 20.sp,
                 fontWeight = W700
             )
@@ -248,27 +281,96 @@ fun InfoProfile(
                         interactionSource = remember { MutableInteractionSource() }
                     )
             )
-
         }
 
-        val tdxDataPhone = if(userData.value.phone == "Введите телефон") "Введите телефон" else "+7 ${userData.value.phone}"
+        val tdxDataPhone =
+            if (userData.value.phone == "Введите телефон") "Введите телефон" else "+7 ${userData.value.phone}"
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .border(2.dp, color = bgMainDarkTheme)
-                .background(
-                    color = bgMainDarkTheme
+                .fillMaxWidth(0.97f)
+                .padding(start = 10.dp, top = 5.dp, end = 0.dp)
+                .shadow(
+                    elevation = 16.dp,  // высота тени
+                    spotColor = Color.Black.copy(alpha = 0.9f),  // черная направленная тень
+                    shape = RoundedCornerShape(24.dp),  // форма тени (должна совпадать с clip)
+                    clip = false  // чтобы тень не обрезалась
                 )
-                .padding(vertical = 10.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(c_surf),
+
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
+            ProfileRowAccounts(
+                txtHeader = "Имя пользователя",
+                txtData = userData.value.userName,
+                onClick = onUsernameClick
+            )
             ProfileRowAccounts(
                 txtHeader = "Номер телефона",
                 txtData = tdxDataPhone,
                 onClick = onPhoneClick
             )
             ProfileRowAccounts(
-                txtHeader = "Имя пользователя",
+                txtHeader = "Должность",
+                txtData = userData.value.userName,
+                onClick = onUsernameClick
+            )
+            ProfileRowAccounts(
+                txtHeader = "Подразделение",
+                txtData = userData.value.userName,
+                onClick = onUsernameClick
+            )
+            ProfileRowAccounts(
+                txtHeader = "Возраст",
+                txtData = userData.value.userName,
+                onClick = onUsernameClick
+            )
+            ProfileRowAccounts(
+                txtHeader = "Стаж работы",
+                txtData = userData.value.userName,
+                onClick = onUsernameClick
+            )
+        }
+    }
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 15.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Контакты",
+                color = c_bgtxt,
+                fontSize = 20.sp,
+                fontWeight = W700
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.97f)
+                .padding(start = 10.dp, top = 5.dp, end = 0.dp)
+                .shadow(
+                    elevation = 16.dp,  // высота тени
+                    spotColor = Color.Black.copy(alpha = 0.9f),  // черная направленная тень
+                    shape = RoundedCornerShape(24.dp),  // форма тени (должна совпадать с clip)
+                    clip = false) // чтобы тень не обрезалась
+                .clip(RoundedCornerShape(24.dp))
+
+                .background(c_surf),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            ProfileRowAccounts(
+                txtHeader = "Телефон",
+                txtData = userData.value.userName,
+                onClick = onUsernameClick
+            )
+            ProfileRowAccounts(
+                txtHeader = "Почта",
                 txtData = userData.value.userName,
                 onClick = onUsernameClick
             )
@@ -282,6 +384,13 @@ fun ProfileRowAccounts(
     txtData: String,
     onClick: () -> Unit,
 ) {
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
+    val c_surftxt = MaterialTheme.colorScheme.onSurface
+    val c_acc = MaterialTheme.colorScheme.primary
+    val c_accmin = MaterialTheme.colorScheme.secondary
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -289,19 +398,16 @@ fun ProfileRowAccounts(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             text = txtHeader,
-            color = txtMainWhite,
+            color = c_bgtxt,
             fontSize = 16.sp,
         )
 
-        TextButton(
-            onClick = onClick
-        ) {
+        TextButton(onClick = onClick) {
             Text(
                 text = txtData,
-                color = txtMainWhite,
+                color = c_acc,
                 fontSize = 16.sp,
                 fontWeight = W500,
             )
@@ -310,18 +416,24 @@ fun ProfileRowAccounts(
 }
 
 @Composable
-fun MenuApplication(navController: NavHostController) {
+fun MenuApplication(navController: NavController) {
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
+    val c_surftxt = MaterialTheme.colorScheme.onSurface
+    val c_acc = MaterialTheme.colorScheme.primary
+    val c_accmin = MaterialTheme.colorScheme.secondary
+
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 15.dp),
             verticalAlignment = Alignment.CenterVertically
-
         ) {
             Text(
                 text = "Настройки",
-                color = txtMainWhite,
+                color = c_bgtxt,
                 fontSize = 20.sp,
                 fontWeight = W700
             )
@@ -329,20 +441,26 @@ fun MenuApplication(navController: NavHostController) {
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .border(2.dp, color = bgMainDarkTheme)
-                .background(
-                    color = bgMainDarkTheme
-                )
+                .fillMaxWidth(0.97f)
+                .padding(start = 10.dp, top = 5.dp, end = 0.dp)
+                .shadow(
+                    elevation = 16.dp,  // высота тени
+                    spotColor = Color.Black.copy(alpha = 0.9f),  // черная направленная тень
+                    shape = RoundedCornerShape(24.dp),  // форма тени (должна совпадать с clip)
+                    clip = false
+                ) // чтобы тень не обрезалась
+                .clip(RoundedCornerShape(24.dp))
+                .background(c_surf),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(
                         onClick = {
-                            navController.navigate(
-                                "settings"
-                            )
+                            navController.navigate("settings")
                         },
                         indication = ripple(),
                         interactionSource = remember { MutableInteractionSource() }
@@ -353,13 +471,39 @@ fun MenuApplication(navController: NavHostController) {
                 Image(
                     painter = painterResource(R.drawable.account_edit_button),
                     contentDescription = "",
-                    modifier = Modifier
-                        .size(35.dp)
+                    modifier = Modifier.size(35.dp)
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
-                    text = "Настройки",
-                    color = txtMainWhite,
+                    text = "Уведомления и звуки",
+                    color = c_bgtxt,
+                    fontSize = 18.sp,
+                )
+            }
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        onClick = {
+                            navController.navigate("security")
+                        },
+                        indication = ripple(),
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+                    .padding(horizontal = 25.dp, vertical = 12.5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.account_lock),
+                    contentDescription = "",
+                    modifier = Modifier.size(35.dp)
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+                Text(
+                    text = "Безопасность",
+                    color = c_bgtxt,
                     fontSize = 18.sp,
                 )
             }
@@ -368,9 +512,7 @@ fun MenuApplication(navController: NavHostController) {
                     .fillMaxWidth()
                     .clickable(
                         onClick = {
-                            navController.navigate(
-                                "appinfo"
-                            )
+                            navController.navigate("appinfo")
                         },
                         indication = ripple(),
                         interactionSource = remember { MutableInteractionSource() }
@@ -381,13 +523,12 @@ fun MenuApplication(navController: NavHostController) {
                 Image(
                     painter = painterResource(R.drawable.account_info),
                     contentDescription = "",
-                    modifier = Modifier
-                        .size(35.dp)
+                    modifier = Modifier.size(35.dp)
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
                     text = "О приложении",
-                    color = txtMainWhite,
+                    color = c_bgtxt,
                     fontSize = 18.sp,
                 )
             }
@@ -395,47 +536,14 @@ fun MenuApplication(navController: NavHostController) {
     }
 }
 
-//@Composable
-//fun ProfileRowSettings(text: String, idPainterResource: Int,navController: NavHostController, paddingHorizontalRow: Dp = 25.dp, ) {
-//    Row(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .clickable(
-//                onClick = {
-//                    navController.navigate(
-//                        "appinfo"
-//
-//                    )
-//                },
-//                indication = ripple(),
-//                interactionSource = remember { MutableInteractionSource() }
-//            )
-//            .padding(horizontal = paddingHorizontalRow, vertical = 12.5.dp),
-//        verticalAlignment = Alignment.CenterVertically
-//    ) {
-//        Image(
-//            painter = painterResource(idPainterResource),
-//            contentDescription = "",
-//            modifier = Modifier
-//                .size(35.dp)
-//        )
-//        Spacer(modifier = Modifier.size(10.dp))
-//        Text(
-//            text = text,
-//            color = txtMainWhite,
-//            fontSize = 18.sp,
-//        )
-//    }
-//}
-
-
 @Composable
 fun ChangePhoneDialog(onAddChannel: (String) -> Unit) {
-    val phoneNumber = remember {
-        mutableStateOf("")
-    }
-    Column(
+    val phoneNumber = remember { mutableStateOf("") }
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
 
+    Column(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth(),
@@ -444,72 +552,50 @@ fun ChangePhoneDialog(onAddChannel: (String) -> Unit) {
     ) {
         Text(
             text = "Изменить телефон",
-            color = txtMainGrey,
+            color = c_bgtxt,
             fontSize = 25.sp
         )
-        Spacer(
-            modifier = Modifier.padding(8.dp)
-        )
+        Spacer(modifier = Modifier.padding(8.dp))
         TextField(
             colors = TextFieldDefaults.colors(
-                unfocusedTextColor = bgMainDarkTheme,
-                unfocusedContainerColor = bgSecDarkTheme,
-                focusedTextColor = txtMainWhite,
-                focusedContainerColor = bgSecDarkTheme,
-                focusedLabelColor = txtMainWhite,
-                unfocusedLabelColor = txtMainWhite,
-                cursorColor = txtMainWhite,
-                focusedIndicatorColor = txtMainWhite,
-
-                ),
+                unfocusedTextColor = c_bg,
+                unfocusedContainerColor = c_surf,
+                focusedTextColor = c_bgtxt,
+                focusedContainerColor = c_surf,
+                focusedLabelColor = c_bgtxt,
+                unfocusedLabelColor = c_bgtxt,
+                cursorColor = c_bgtxt,
+                focusedIndicatorColor = c_bgtxt,
+            ),
             value = phoneNumber.value,
             onValueChange = {
-//                phoneNumber.value = it.filter { char -> char.isDigit() }.take(10)
-                phoneNumber.value = it
-                    .filter { it.isDigit() }
-                    .take(10)
+                phoneNumber.value = it.filter { it.isDigit() }.take(10)
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-//            visualTransformation = PhoneNumberVisualTransformation(),
             placeholder = { Text("Введите номер без +7") },
-            label = {
-                Text(
-                    text = "Телефон"
-                )
-            },
+            label = { Text(text = "Телефон") },
             singleLine = true,
         )
-
-        Spacer(
-            modifier = Modifier.padding(8.dp)
-        )
-
+        Spacer(modifier = Modifier.padding(8.dp))
         Button(
-            onClick = {
-                onAddChannel(phoneNumber.value)
-            },
-            modifier = Modifier
-                .padding(horizontal = 40.dp, vertical = 5.dp),
-            colors = ButtonDefaults.buttonColors(
-                accentBlue
-            ),
+            onClick = { onAddChannel(phoneNumber.value) },
+            modifier = Modifier.padding(horizontal = 40.dp, vertical = 5.dp),
+            colors = ButtonDefaults.buttonColors(accentBlue),
             enabled = phoneNumber.value.length == 10
-
         ) {
             Text(text = "Изменить")
         }
-
     }
 }
 
-
 @Composable
 fun ChangeUsernameDialog(onAddChannel: (String) -> Unit) {
-    val userName = remember {
-        mutableStateOf("")
-    }
-    Column(
+    val userName = remember { mutableStateOf("") }
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
 
+    Column(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth(),
@@ -518,54 +604,34 @@ fun ChangeUsernameDialog(onAddChannel: (String) -> Unit) {
     ) {
         Text(
             text = "Изменить имя пользователя",
-            color = txtMainGrey,
+            color = c_bgtxt,
             fontSize = 25.sp
         )
-        Spacer(
-            modifier = Modifier.padding(8.dp)
-        )
+        Spacer(modifier = Modifier.padding(8.dp))
         TextField(
             colors = TextFieldDefaults.colors(
-                unfocusedTextColor = bgMainDarkTheme,
-                unfocusedContainerColor = txtMainWhite,
-                focusedTextColor = txtMainWhite,
-                focusedContainerColor = bgSecDarkTheme,
-                focusedLabelColor = txtMainWhite,
-                unfocusedLabelColor = txtMainWhite,
-                cursorColor = txtMainWhite,
-                focusedIndicatorColor = txtMainWhite,
-
-                ),
+                unfocusedTextColor = c_bg,
+                unfocusedContainerColor = c_surf,
+                focusedTextColor = c_bgtxt,
+                focusedContainerColor = c_surf,
+                focusedLabelColor = c_bgtxt,
+                unfocusedLabelColor = c_bgtxt,
+                cursorColor = c_bgtxt,
+                focusedIndicatorColor = c_bgtxt,
+            ),
             value = userName.value,
-            onValueChange = {
-                userName.value = it
-                    .take(25)
-            },
-            label = {
-                Text(
-                    text = "Имя пользователя"
-                )
-            },
+            onValueChange = { userName.value = it.take(25) },
+            label = { Text(text = "Имя пользователя") },
             singleLine = true,
         )
-
-        Spacer(
-            modifier = Modifier.padding(8.dp)
-        )
-
+        Spacer(modifier = Modifier.padding(8.dp))
         Button(
-            onClick = {
-                onAddChannel(userName.value)
-            },
-            modifier = Modifier
-                .padding(horizontal = 40.dp, vertical = 5.dp),
-            colors = ButtonDefaults.buttonColors(
-                accentBlue
-            ),
+            onClick = { onAddChannel(userName.value) },
+            modifier = Modifier.padding(horizontal = 40.dp, vertical = 5.dp),
+            colors = ButtonDefaults.buttonColors(accentBlue),
             enabled = userName.value.length >= 3
         ) {
             Text(text = "Изменить")
         }
-
     }
 }

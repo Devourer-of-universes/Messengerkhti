@@ -40,6 +40,7 @@ import com.example.myapplication.screen.Profile.ProfileScreen
 import com.example.myapplication.screen.Login.signIn.SignInScreen
 import com.example.myapplication.screen.Login.signUp.SignUpScreen
 import com.example.myapplication.screen.Profile.AppInfoScreen
+import com.example.myapplication.screen.Settings.SecurityScreen
 import com.example.myapplication.screen.Settings.SettingsScreen
 import com.example.myapplication.ui.theme.ThemeMode
 import com.google.firebase.auth.FirebaseAuth
@@ -70,11 +71,19 @@ fun MainScreen(currentAccent: Color,
             val channelId = it.arguments?.getString("channelId") ?: ""
             MessageScreen(navController,channelId)
         }
+        composable (route = "profile"){
+            ProfileScreen(modifier = modifier, navController)
+        }
         composable(route = "appinfo") {
             AppInfoScreen(navController)
         }
         composable(route = "settings") {
             SettingsScreen(navController, currentThemeMode, onChangeThemeMode, currentAccent, onChangeAccent,)
+        }
+        composable("security") {
+            SecurityScreen(
+                navController = navController
+            )
         }
     }
 }

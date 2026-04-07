@@ -43,7 +43,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -112,16 +114,21 @@ fun ContentMessage(
     channelId: String,
     navController: NavHostController,
 ) {
-
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет
+    val c_accmin = MaterialTheme.colorScheme.secondary     //- это акцент с прозрачностью 0.5
     Box(
         modifier = Modifier
-            .background(bgMainDarkTheme)
+            .background(c_bg)
     ) {
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .background(
-                    color = bgSecDarkTheme
+                    color = c_bg
                 ),
 
             ) {
@@ -173,7 +180,8 @@ fun ChatMessages(
                     .fillMaxWidth()
                     .height(50.dp)
                     .background(c_acc)
-                    .padding(bottom = 16.dp),
+//                    .padding(bottom = 16.dp)
+                ,
                 contentAlignment = Alignment.Center
             ) {
 
@@ -225,29 +233,38 @@ fun ChatMessages(
 
         Row(
             modifier = Modifier
+
                 .fillMaxWidth()
+                .padding(start = 6.dp, end = 6.dp)
                 .align(Alignment.BottomCenter)
 //                .padding(8.dp)
-                .background(txtMainWhite),
+                ,
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
             IconButton(
                 modifier = Modifier
+                    .clip(CircleShape)
+                    .background(c_acc)
                     .align(Alignment.CenterVertically),
                 onClick = {
 
                 },
             ) {
                 Icon(
-                    tint = c_surftxt,
+                    tint = White,
                     imageVector = Icons.Filled.AttachFile,
+
                     contentDescription = "sendMessage"
                 )
             }
 
             TextField(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+
+                    .padding(start = 6.dp, end = 6.dp)
+                    .clip(CircleShape)
+                    .weight(1f),
                 colors = TextFieldDefaults.colors(
                     unfocusedTextColor = c_bg,
                     unfocusedContainerColor = c_surf,
@@ -278,6 +295,8 @@ fun ChatMessages(
             )
             IconButton(
                 modifier = Modifier
+                    .clip(CircleShape)
+                    .background(c_acc)
                     .align(Alignment.CenterVertically),
                 onClick = {
                     onSendMessage(msg.value)
@@ -285,7 +304,7 @@ fun ChatMessages(
                 },
             ) {
                 Icon(
-                    tint = c_surftxt,
+                    tint = White,
                     imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "sendMessage"
                 )
@@ -316,7 +335,8 @@ fun ItemMessageOnChat(message: Message) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 8.dp),
+            .padding(vertical = 4.dp, horizontal = 8.dp)
+        ,
     ) {
         val alignment = if (!isCurrentUser) Alignment.CenterStart else Alignment.CenterEnd
 
@@ -347,11 +367,11 @@ fun ItemMessageOnChat(message: Message) {
                 modifier = Modifier
 //                    .align(Alignment.TopStart)
                     .padding(start = 8.dp)
-                    .background(colorItem, shape = RoundedCornerShape(16.dp))
+                    .background(c_surf, shape = RoundedCornerShape(24.dp))
             ) {
                 Text(
                     text = message.senderName,
-                    color = txtMainWhite,
+                    color = c_acc,
                     modifier = Modifier.padding(
                         top = 8.dp,
                         start = 10.dp,
@@ -389,3 +409,37 @@ fun ItemMessageOnChat(message: Message) {
 
     }
 }
+
+
+//Row(
+
+//) {
+//    Box(
+//        modifier = Modifier
+//            .padding(start = 8.dp)
+//            .clip(RoundedCornerShape(12.dp))
+//            .size(59.dp)
+//            .background(c_accmin)//txtMainSelected)
+//        ,
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Text(
+//            text = channel.name[0].uppercase(),
+//            color = c_bgtxt, //txtMainWhite,
+//            fontSize = 30.sp,
+//        )
+//    }
+//    Column(
+//        modifier = Modifier
+//            .padding(start = 16.dp)
+//
+//    ) {
+//        Text(
+//            text = channel.name,
+//            fontSize = 20.sp,
+//            color = c_bgtxt //txtMainWhite
+//        )
+//        Text(
+//            text = "Иван: ну и бредятина...",
+//            fontSize = 14.sp,
+//            color = c_surftxt

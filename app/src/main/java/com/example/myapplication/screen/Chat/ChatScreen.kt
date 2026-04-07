@@ -71,12 +71,13 @@ fun ChatScreen(modifier: Modifier = Modifier,
     }
     val sheetState = rememberModalBottomSheetState()
 
-    val isActiveChannel = remember {
-        mutableStateOf(true)
-    }
-    val isActivePrivate = remember {
-        mutableStateOf(true)
-    }
+//    val isActiveChannel = remember {
+//        mutableStateOf(true)
+//    }
+//    val isActivePrivate = remember {
+//        mutableStateOf(true)
+//    }
+    val activeSection = remember { mutableStateOf(value = "") }
     val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
     val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
     val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
@@ -176,8 +177,8 @@ fun ChatScreen(modifier: Modifier = Modifier,
                     val colorUnSelected = c_surftxt
 
 
-                    if (isActiveChannel.value == true) {
-                        TextButton(onClick = { isActiveChannel.value = true; isActivePrivate.value = false }) {
+                    if (activeSection.value == "Каналы") {
+                        TextButton(onClick = { activeSection.value = "Каналы"}) {
                             Text(
                                 fontWeight = W700,
                                 color = colorSelected,
@@ -185,7 +186,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
                                 fontSize = 14.sp
                             )
                         }
-                        TextButton(onClick = { isActiveChannel.value = false; isActivePrivate.value = true}) {
+                        TextButton(onClick = { activeSection.value = "Проекты"}) {
                             Text(
                                 fontWeight = W700,
                                 color = colorUnSelected,
@@ -193,7 +194,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
                                 fontSize = 14.sp
                             )
                         }
-                        TextButton(onClick = { isActiveChannel.value = false; isActivePrivate.value = false }) {
+                        TextButton(onClick = { activeSection.value = "Личные" }) {
                             Text(
                                 fontWeight = W700,
                                 color = colorUnSelected,
@@ -201,8 +202,8 @@ fun ChatScreen(modifier: Modifier = Modifier,
                                 fontSize = 14.sp
                             )
                         }
-                    } else if(isActivePrivate.value == true){
-                        TextButton(onClick = { isActiveChannel.value = true; isActivePrivate.value = false }) {
+                    } else if(activeSection.value == "Проекты"){
+                        TextButton(onClick = { activeSection.value = "Каналы" }) {
                             Text(
                                 fontWeight = W700,
                                 color = colorUnSelected,
@@ -210,7 +211,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
                                 fontSize = 14.sp
                             )
                         }
-                        TextButton(onClick = { isActiveChannel.value = false; isActivePrivate.value = true}) {
+                        TextButton(onClick = { activeSection.value = "Проекты"}) {
                             Text(
                                 fontWeight = W700,
                                 color = colorSelected,
@@ -218,7 +219,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
                                 fontSize = 14.sp
                             )
                         }
-                        TextButton(onClick = { isActiveChannel.value = false; isActivePrivate.value = false }) {
+                        TextButton(onClick = { activeSection.value = "Личные" }) {
                             Text(
                                 fontWeight = W700,
                                 color = colorUnSelected,
@@ -227,7 +228,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
                             )
                         }
                     }else{
-                        TextButton(onClick = { isActiveChannel.value = true; isActivePrivate.value = false }) {
+                        TextButton(onClick = { activeSection.value = "Каналы" }) {
                             Text(
                                 fontWeight = W700,
                                 color = colorUnSelected,
@@ -235,7 +236,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
                                 fontSize = 14.sp
                             )
                         }
-                        TextButton(onClick = { isActiveChannel.value = false; isActivePrivate.value = true}) {
+                        TextButton(onClick = { activeSection.value = "Проекты"}) {
                             Text(
                                 fontWeight = W700,
                                 color = colorUnSelected,
@@ -243,7 +244,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
                                 fontSize = 14.sp
                             )
                         }
-                        TextButton(onClick = { isActiveChannel.value = false; isActivePrivate.value = false }) {
+                        TextButton(onClick = { activeSection.value = "Личные" }) {
                             Text(
                                 fontWeight = W700,
                                 color = colorSelected,
@@ -264,7 +265,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
 //                        .height(2.dp)
 //                )
 //            }
-            if (isActiveChannel.value) {
+            if (activeSection.value == "Каналы") {
                 items(channels.value) { channel ->
                     Column {
                         ItemChatChannel(channel, onClick = {
@@ -275,7 +276,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
                         })
                     }
                 }
-            } else if(isActivePrivate.value){
+            } else if(activeSection.value == "Проекты"){
                 items(channels.value) { channel ->
                     Column {
                         ItemChatProject(channel, onClick = {
@@ -301,7 +302,7 @@ fun ChatScreen(modifier: Modifier = Modifier,
 
 
         }
-        if (isActiveChannel.value) {
+        if (activeSection.value != "Личные") {
             FloatingActionButton(
                 contentColor = c_bgtxt,
                 containerColor = c_acc,
@@ -318,7 +319,8 @@ fun ChatScreen(modifier: Modifier = Modifier,
             ) {
                 Icon(
                     imageVector = Icons.Default.Create,
-                    contentDescription = ""
+                    contentDescription = "",
+                    tint = Color.White
                 )
             }
         }
@@ -368,11 +370,91 @@ fun ItemChatChannel(channel: Channel, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.padding(start = 8.dp)
+            modifier = Modifier
+                .padding(start = 8.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .size(59.dp)
                 .background(c_accmin)//txtMainSelected)
                 ,
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = channel.name[0].uppercase(),
+                color = c_bgtxt, //txtMainWhite,
+                fontSize = 30.sp,
+            )
+        }
+        Column(
+            modifier = Modifier
+                .padding(start = 16.dp)
+
+        ) {
+            Text(
+                text = channel.name,
+                fontSize = 20.sp,
+                color = c_bgtxt //txtMainWhite
+            )
+            Text(
+                text = "Иван: ну и бредятина...",
+                fontSize = 14.sp,
+                color = c_surftxt
+            )
+//            Text(
+//                text = formattedDate,
+//                fontSize = 16.sp,
+//                color = txtMainWhite
+//            )
+        }
+        Box(modifier = Modifier.padding(bottom = 40.dp, start = 75.dp)){//костыль бахнуть с добавлением пробелов хехе
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .size(24.dp)
+                    .background(color = c_acc),
+                contentAlignment = Alignment.Center
+            ){
+                Text(
+                    text = "6",
+                    fontSize = 20.sp,
+                    color = txtMainWhite,
+
+                    )
+            }
+        }
+
+    }
+    Spacer(modifier = Modifier.padding(4.dp))
+}
+
+@Composable
+fun ItemChatProject(channel: Channel, onClick: () -> Unit) {
+
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет
+    val c_accmin = MaterialTheme.colorScheme.secondary
+    Row(
+        modifier = Modifier
+
+            .fillMaxWidth(0.9f)
+            .height(75.dp)
+            .padding(start = 2.dp)
+            .clickable {
+                onClick()
+            }
+            .clip(RoundedCornerShape(20.dp))
+            .background(c_surf),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .size(59.dp)
+                .background(c_accmin)//txtMainSelected)
+            ,
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -403,7 +485,8 @@ fun ItemChatChannel(channel: Channel, onClick: () -> Unit) {
         }
         Box(modifier = Modifier.padding(bottom = 40.dp, start = 75.dp)){//костыль бахнуть с добавлением пробелов хехе
             Box(
-                modifier = Modifier.clip(CircleShape)
+                modifier = Modifier
+                    .clip(CircleShape)
                     .size(24.dp)
                     .background(color = c_acc),
                 contentAlignment = Alignment.Center
@@ -422,11 +505,7 @@ fun ItemChatChannel(channel: Channel, onClick: () -> Unit) {
 }
 
 @Composable
-fun ItemChatProject(channel: Channel, onClick: () -> Unit) {
-
-//    val date = Date(channel.createdAT)
-//    val sdf = SimpleDateFormat("dd/MM/yy HH:mm ")
-//    val formattedDate = sdf.format(date)
+fun ItemChatIndMassage(indivMessage: indivMessage, onClick: () -> Unit) {
     val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
     val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
     val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
@@ -435,88 +514,29 @@ fun ItemChatProject(channel: Channel, onClick: () -> Unit) {
     val c_accmin = MaterialTheme.colorScheme.secondary
     Row(
         modifier = Modifier
-            .background(c_surf)
+
             .fillMaxWidth(0.9f)
             .height(75.dp)
-            .padding(horizontal = 8.dp)
+            .padding(start = 2.dp)
             .clickable {
                 onClick()
             }
-            .clip(RoundedCornerShape(24.dp)),
+            .clip(RoundedCornerShape(20.dp))
+            .background(c_surf),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
+                .padding(start = 8.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .size(50.dp)
+                .size(59.dp)
                 .background(c_accmin)//txtMainSelected)
-                .padding(horizontal = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = channel.name[0].uppercase(),
-                color = c_bgtxt, //txtMainWhite,
-                fontSize = 30.sp,
-            )
-        }
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp)
-        ) {
-            Text(
-                text = channel.name,
-                fontSize = 20.sp,
-                color = c_bgtxt //txtMainWhite
-            )
-//            Text(
-//                text = formattedDate,
-//                fontSize = 16.sp,
-//                color = txtMainWhite
-//            )
-        }
-    }
-    HorizontalDivider(
-        color = c_surftxt, //bgGreyLight,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(2.dp)
-    )
-}
-
-@Composable
-fun ItemChatIndMassage(indivMessage: indivMessage, onClick: () -> Unit) {
-
-//    val date = Date(channel.createdAT)
-//    val sdf = SimpleDateFormat("dd/MM/yy HH:mm ")
-//    val formattedDate = sdf.format(date)
-    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
-    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
-    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
-    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст
-    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет
-    val c_accmin = MaterialTheme.colorScheme.secondary
-    Row(
-        modifier = Modifier
-            .background(color = c_surf)
-            .fillMaxWidth()
-            .height(75.dp)
-            .padding(horizontal = 8.dp)
-            .clickable {
-                onClick()
-            },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .clip(CircleShape)
-                .size(50.dp)
-                .background(c_acc)
-                .padding(horizontal = 8.dp),
+            ,
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = indivMessage.name[0].uppercase(),
-                color = c_bgtxt,//txtMainWhite,
+                color = c_bgtxt, //txtMainWhite,
                 fontSize = 30.sp,
             )
         }
@@ -529,19 +549,36 @@ fun ItemChatIndMassage(indivMessage: indivMessage, onClick: () -> Unit) {
                 fontSize = 20.sp,
                 color = c_bgtxt //txtMainWhite
             )
+            Text(
+                text = "Иван: ну и бредятина...",
+                fontSize = 14.sp,
+                color = c_surftxt
+            )
 //            Text(
 //                text = formattedDate,
 //                fontSize = 16.sp,
 //                color = txtMainWhite
 //            )
         }
+        Box(modifier = Modifier.padding(bottom = 40.dp, start = 75.dp)){//костыль бахнуть с добавлением пробелов хехе
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .size(24.dp)
+                    .background(color = c_acc),
+                contentAlignment = Alignment.Center
+            ){
+                Text(
+                    text = "6",
+                    fontSize = 20.sp,
+                    color = txtMainWhite,
+
+                    )
+            }
+        }
+
     }
-//    HorizontalDivider(
-//        color = c_surftxt,//= bgGreyLight,
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(2.dp)
-//    )
+    Spacer(modifier = Modifier.padding(4.dp))
 }
 
 @Composable

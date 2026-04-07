@@ -3,9 +3,11 @@ package com.example.myapplication.screen.Contacts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,9 +19,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -63,7 +67,12 @@ fun ContactsScreen(modifier: Modifier = Modifier,
     val viewModel = hiltViewModel<ContactsScreenViewModel>()
     val chatViewModel = hiltViewModel<ChatViewModel>() // Получаем ChatViewModel
     val users = viewModel.users.collectAsState()
-
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет
+    val c_accmin = MaterialTheme.colorScheme.secondary
     Box(
         modifier = Modifier.fillMaxSize()
 
@@ -75,33 +84,18 @@ fun ContactsScreen(modifier: Modifier = Modifier,
                 .background(
                     color = bgMainDarkTheme
                 ),
-
+            horizontalAlignment = Alignment.CenterHorizontally
             ) {
             item {
-                Box(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(30.dp)
-                        .background(bgSecDarkTheme)
-                        .padding(top = 5.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Контакты",
-                        fontSize = 25.sp,
-                        color = txtMainWhite
-                    )
-
-                }
-            }
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-//                        .height(50.dp)
-                        .background(bgMainDarkTheme)
-                        .padding(bottom = 10.dp, top = 10.dp),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth(0.9f)
+                        .height(110.dp)
+                        .padding(top = 10.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(c_acc),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     var index by remember {
                         mutableStateOf("")
@@ -109,29 +103,42 @@ fun ContactsScreen(modifier: Modifier = Modifier,
                     OutlinedTextField(
                         value = index,
                         onValueChange = { index = it },
-                        placeholder = {Text("Поиск контакта...", color = bgSecDarkTheme)},
+                        placeholder = {
+                            Text(
+                                text = "Поиск контакта...",
+                                color = c_surftxt,
+                                fontSize = 16.sp,
+                                maxLines = 1
+
+                            )
+                        },
+                        // Параметр leadingIcon вынесен из placeholder
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Поиск",
+                                modifier = Modifier.padding(start = 12.dp),
+                                tint = c_bgtxt
+                            )
+                        },
                         modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .padding(bottom = 20.dp),
+                            .height(50.dp)
+                            .fillMaxWidth(0.75f), // Немного увеличил ширину для удобства
                         shape = RoundedCornerShape(50),
+                        singleLine = true, // Чтобы текст не переносился
                         colors = OutlinedTextFieldDefaults.colors(
-                            errorTextColor = Color.Red,
-                            focusedTextColor = txtMainWhite,
-                            focusedBorderColor = txtMainGrey,
-                            unfocusedBorderColor = bgMainDarkTheme,
-                            unfocusedTextColor = txtMainWhite
+                            focusedContainerColor = c_surf,
+                            unfocusedContainerColor = c_surf,
+                            focusedTextColor = c_bgtxt,
+                            unfocusedTextColor = c_bgtxt,
+                            focusedBorderColor = Color.Transparent, // Убираем рамку, если нужен стиль "капсулы"
+                            unfocusedBorderColor = Color.Transparent
                         )
                     )
                 }
+                Spacer(modifier = Modifier.padding(10.dp))
             }
-            item {
-                HorizontalDivider(
-                    color = bgSecDarkTheme,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(2.dp)
-                )
-            }
+
             items(users.value) { users ->
                 Column {
                     ItemUser(users, onClick = {
@@ -157,23 +164,32 @@ fun ContactsScreen(modifier: Modifier = Modifier,
 @Composable
 fun ItemUser(users: UserData, onClick: () -> Unit) {
 
+    val c_bg = MaterialTheme.colorScheme.background     //- это основной фон
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground     //- это самый яркий текст, белый/чёрный
+    val c_surf = MaterialTheme.colorScheme.surface     //- это дополнительный фон (белый/серо-синий посветлее). На нём уже все элементы
+    val c_surftxt = MaterialTheme.colorScheme.onSurface     //- это серый текст
+    val c_acc = MaterialTheme.colorScheme.primary     //- это акцентный цвет
+    val c_accmin = MaterialTheme.colorScheme.secondary
     Row(
         modifier = Modifier
-            .background(bgSecDarkTheme)
-            .fillMaxWidth()
+
+            .fillMaxWidth(0.9f)
             .height(75.dp)
-            .padding(horizontal = 8.dp)
+            .padding(start = 2.dp)
             .clickable {
                 onClick()
-            },
+            }
+            .clip(RoundedCornerShape(20.dp))
+            .background(c_surf),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .clip(CircleShape)
-                .size(50.dp)
-                .background(txtMainGrey)
-                .padding(horizontal = 8.dp),
+                .padding(start = 8.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .size(59.dp)
+                .background(c_accmin)//txtMainSelected)
+            ,
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -197,17 +213,12 @@ fun ItemUser(users: UserData, onClick: () -> Unit) {
                 fontSize = 20.sp,
                 color = txtMainWhite
             )
-//            Text(
-//                text = formattedDate,
-//                fontSize = 16.sp,
-//                color = txtMainWhite
-//            )
+            Text(
+                text = '@'+users.userName,
+                fontSize = 14.sp,
+                color = c_surftxt
+            )
         }
     }
-    HorizontalDivider(
-        color = bgSecDarkTheme,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(2.dp)
-    )
+    Spacer(modifier = Modifier.padding(4.dp))
 }
