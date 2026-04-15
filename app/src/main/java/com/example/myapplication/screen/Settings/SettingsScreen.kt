@@ -23,10 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.myapplication.R
-import com.example.myapplication.firm.ActiveSession
-import com.example.myapplication.firm.ActiveSessionCard
-import com.example.myapplication.firm.DeviceType
-import com.example.myapplication.firm.SettingsSwitch
 import com.example.myapplication.firm.ThemeSelectorItem
 import com.example.myapplication.ui.theme.*
 import java.util.Date
@@ -49,47 +45,47 @@ fun SettingsScreen(
     var soundEnabled by remember { mutableStateOf(true) }
     var vibrationEnabled by remember { mutableStateOf(false) }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-
-    ) { paddingValues ->
-
-        LazyColumn(
+    // Убираем Scaffold, используем простой Column
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(c_bg)
+    ) {
+        // Верхняя панель
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(c_bg)
-                .padding(paddingValues)
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(c_acc),
+            contentAlignment = Alignment.Center
+        ) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад",
+                    tint = c_bgtxt
+                )
+            }
+
+            Text(
+                text = "Оформление",
+                fontSize = 22.sp,
+                color = c_bgtxt,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+
+        // Контент с прокруткой
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 8.dp)
         ) {
             // === ТЕМА ОФОРМЛЕНИЯ ===
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .background(c_acc),
-                    contentAlignment = Alignment.Center
-                ) {
-                    IconButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .size(48.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
-                            tint = c_bgtxt
-                        )
-                    }
-
-                    Text(
-                        text = "Настройки",
-                        fontSize = 22.sp,
-                        color = c_bgtxt,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-            }
             item {
                 SettingsHeader(title = "Тема оформления")
             }
@@ -182,7 +178,7 @@ fun SettingsHeader(title: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 15.dp),
+            .padding(horizontal = 20.dp, vertical = 8.dp), // Уменьшили vertical с 15.dp до 8.dp
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -203,8 +199,8 @@ fun SettingsCard(
 
     Column(
         modifier = modifier
-            .fillMaxWidth(0.97f)
-            .padding(start = 10.dp, top = 5.dp, end = 0.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp) // Убрали top отступ, оставили только горизонтальные
             .shadow(
                 elevation = 16.dp,
                 spotColor = Color.Black.copy(alpha = 0.9f),

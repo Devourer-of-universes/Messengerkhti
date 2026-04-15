@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -44,38 +45,40 @@ import com.example.myapplication.ui.theme.txtMainWhite
 
 
 @Composable
-fun SignInScreen(navController: NavController,
-){
-    Log.d("proverka","signinScreen открылся")
+fun SignInScreen(navController: NavController) {
+    Log.d("proverka", "signinScreen открылся")
     val viewModel: SignInViewModel = hiltViewModel()
-    val uiState = viewModel.state.collectAsState()
-
+    val uiState by viewModel.state.collectAsState()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
     val context = LocalContext.current
-    LaunchedEffect(key1 = uiState.value) {
-        when(uiState.value){
-            is SignInState.Success -> {
-                navController.navigate(route = "app")
-            }
 
+    // Обработка состояния
+    LaunchedEffect(uiState) {
+        when (val state = uiState) {
+            SignInState.Success -> {
+                Toast.makeText(context, "Вход выполнен", Toast.LENGTH_SHORT).show()
+                navController.navigate("app") {
+                    popUpTo("signin") { inclusive = true }
+                }
+            }
             is SignInState.Error -> {
-                Toast.makeText(context, "Ошибка авторизации", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
             }
             else -> {}
-
         }
-
     }
-    Column (modifier = Modifier
-        .fillMaxWidth()
-        .background(color = bgSecDarkTheme)
-        .fillMaxHeight(),
-        horizontalAlignment = Alignment.CenterHorizontally)
-    {
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = bgSecDarkTheme)
+            .fillMaxHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Spacer(modifier = Modifier.padding(50.dp))
+
         Text(
             text = "Добро пожаловать!",
             color = txtMainGrey,
@@ -86,11 +89,13 @@ fun SignInScreen(navController: NavController,
             color = txtMainGrey,
             fontSize = 20.sp
         )
+
         Spacer(modifier = Modifier.padding(50.dp))
+
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            placeholder = {Text("Электронная почта", color = bgSecDarkTheme)},
+            placeholder = { Text("Электронная почта", color = txtMainGrey) },
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .padding(bottom = 20.dp),
@@ -98,15 +103,18 @@ fun SignInScreen(navController: NavController,
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
                 focusedTextColor = txtMainWhite,
+                unfocusedTextColor = txtMainWhite,
                 focusedBorderColor = txtMainGrey,
                 unfocusedBorderColor = bgMainDarkTheme,
-                unfocusedTextColor = txtMainWhite
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent
             )
         )
+
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            placeholder = {Text("Пароль", color = bgSecDarkTheme)},
+            placeholder = { Text("Пароль", color = txtMainGrey) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth(0.8f),
@@ -114,12 +122,14 @@ fun SignInScreen(navController: NavController,
             colors = OutlinedTextFieldDefaults.colors(
                 errorTextColor = Color.Red,
                 focusedTextColor = txtMainWhite,
+                unfocusedTextColor = txtMainWhite,
                 focusedBorderColor = txtMainGrey,
                 unfocusedBorderColor = bgMainDarkTheme,
-                unfocusedTextColor = txtMainWhite
-
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent
             )
         )
+
         Text(
             text = "Забыли пароль?",
             color = bgSecDarkTheme,
@@ -128,28 +138,42 @@ fun SignInScreen(navController: NavController,
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .padding(bottom = 40.dp)
-
         )
+
         Button(
-            onClick = { viewModel.signIn(email = email, password = password) },
-            modifier = Modifier.size(width = 220.dp, height = 48.dp).padding(bottom = 10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = txtMainGrey
-            )
+            onClick = {
+                if (email.isNotBlank() && password.isNotBlank()) {
+                    viewModel.signIn(email = email, password = password)
+                } else {
+                    Toast.makeText(context, "Заполните все поля", Toast.LENGTH_SHORT).show()
+                }
+            },
+            modifier = Modifier
+                .size(width = 220.dp, height = 48.dp)
+                .padding(bottom = 10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = txtMainGrey),
+            enabled = uiState != SignInState.Loading
         ) {
-            Text(
-                text = "Авторизация",
-                fontSize = 18.sp,
-                color = txtMainWhite
-            )
+            if (uiState == SignInState.Loading) {
+                // Можно добавить CircularProgressIndicator
+                Text(text = "Загрузка...", fontSize = 18.sp, color = txtMainWhite)
+            } else {
+                Text(text = "Авторизация", fontSize = 18.sp, color = txtMainWhite)
+            }
         }
+
         Text(
             text = "У вас нет учётной записи?",
             color = txtMainGrey,
             fontSize = 12.sp
         )
-        TextButton(onClick = { navController.navigate(route = "signup") }) {
-            Text(fontWeight = W700, color = bgSecDarkTheme, text = "Регистрация")
+
+        TextButton(onClick = { navController.navigate("signup") }) {
+            Text(
+                fontWeight = W700,
+                color = bgSecDarkTheme,
+                text = "Регистрация"
+            )
         }
     }
 }

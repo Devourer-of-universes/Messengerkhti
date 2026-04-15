@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight.Companion.W700
 import androidx.compose.ui.unit.dp
@@ -37,46 +38,49 @@ fun SecurityScreen(
     val c_surf = MaterialTheme.colorScheme.surface
     val c_acc = MaterialTheme.colorScheme.primary
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-
-    ) { paddingValues ->
-        LazyColumn(
+    // Убираем Scaffold полностью, используем простой Column
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(c_bg)
+    ) {
+        // === ШАПКА С КНОПКОЙ НАЗАД ===
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(c_bg)
-                .padding(paddingValues)
+                .fillMaxWidth()
+                .height(56.dp) // Уменьшили с 60.dp до 56.dp
+                .background(c_acc),
+            contentAlignment = Alignment.Center
+        ) {
+            IconButton(
+                onClick = {
+                    navController.navigateUp()
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад",
+                    tint = c_bgtxt
+                )
+            }
+
+            Text(
+                text = "Безопасность",
+                fontSize = 22.sp,
+                color = c_bgtxt,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+
+        // === Контент с прокруткой ===
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 8.dp) // Небольшие отступы для контента
         ) {
             // === АКТИВНЫЕ СЕССИИ ===
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .background(c_acc),
-                    contentAlignment = Alignment.Center
-                ) {
-                    IconButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .size(48.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
-                            tint = c_bgtxt
-                        )
-                    }
-
-                    Text(
-                        text = "Безопасность",
-                        fontSize = 22.sp,
-                        color = c_bgtxt,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-            }
             item {
                 SecurityHeader(title = "Активные сессии")
             }
@@ -150,6 +154,7 @@ fun SecurityScreen(
                         ) {
                             Image(
                                 painter = painterResource(R.drawable.account_lock),
+                                colorFilter = ColorFilter.tint(Color.Red), // Добавили tint для цвета
                                 contentDescription = "",
                                 modifier = Modifier.size(20.dp)
                             )
@@ -163,36 +168,6 @@ fun SecurityScreen(
                     }
                 }
             }
-
-            // Дополнительные настройки безопасности (опционально)
-//            item {
-//                SecurityHeader(title = "Двухфакторная аутентификация")
-//            }
-
-//            item {
-//                SecurityCard {
-//                    Column(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        verticalArrangement = Arrangement.spacedBy(12.dp)
-//                    ) {
-//                        Text(
-//                            text = "Повысьте безопасность аккаунта",
-//                            fontSize = 14.sp,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//
-//                        Button(
-//                            onClick = { /* Настройка 2FA */ },
-//                            modifier = Modifier.fillMaxWidth(),
-//                            colors = ButtonDefaults.buttonColors(
-//                                containerColor = MaterialTheme.colorScheme.primary
-//                            )
-//                        ) {
-//                            Text("Настроить двухфакторную аутентификацию")
-//                        }
-//                    }
-//                }
-//            }
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -208,7 +183,7 @@ fun SecurityHeader(title: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 15.dp),
+            .padding(horizontal = 20.dp, vertical = 8.dp), // Уменьшили vertical с 15.dp до 8.dp
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -229,8 +204,8 @@ fun SecurityCard(
 
     Column(
         modifier = modifier
-            .fillMaxWidth(0.97f)
-            .padding(start = 10.dp, top = 5.dp, end = 0.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp) // Убрали top отступ, оставили только горизонтальные
             .shadow(
                 elevation = 16.dp,
                 spotColor = Color.Black.copy(alpha = 0.9f),

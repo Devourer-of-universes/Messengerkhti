@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight.Companion.W500
@@ -199,7 +200,7 @@ fun HeaderProfile(navController: NavController, userData: State<UserData>) {
                     contentDescription = "",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(100.dp)
+                        .size(150.dp)
                         .shadow(3.dp, CircleShape)
                         .clip(CircleShape)
                         .clickable(
@@ -223,21 +224,8 @@ fun HeaderProfile(navController: NavController, userData: State<UserData>) {
                 .height(200.dp),
             contentAlignment = Alignment.TopEnd
         ) {
-            Image(
-                painter = painterResource(R.drawable.account_logout),
-                contentDescription = "",
-                modifier = Modifier
-                    .padding(10.dp)
-                    .size(30.dp)
-                    .clickable(
-                        onClick = {
-                            Firebase.auth.signOut()
-                            navController.navigate(route = "login")
-                        },
-                        indication = ripple(),
-                        interactionSource = remember { MutableInteractionSource() }
-                    ),
-            )
+            // ИСПРАВЛЕНО: добавляем colorFilter
+
         }
     }
 }
@@ -272,6 +260,7 @@ fun InfoProfile(
 
             Image(
                 painter = painterResource(R.drawable.account_edit_button),
+                colorFilter = ColorFilter.tint(c_bgtxt),
                 contentDescription = "",
                 modifier = Modifier
                     .size(30.dp)
@@ -425,43 +414,37 @@ fun MenuApplication(navController: NavController) {
     val c_accmin = MaterialTheme.colorScheme.secondary
 
     Column {
-        Row(
+        // Заголовок "Настройки"
+        Text(
+            text = "Настройки",
+            color = c_bgtxt,
+            fontSize = 20.sp,
+            fontWeight = W700,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 15.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Настройки",
-                color = c_bgtxt,
-                fontSize = 20.sp,
-                fontWeight = W700
-            )
-        }
+                .padding(horizontal = 20.dp, vertical = 15.dp)
+        )
 
+        // Карточка с основными пунктами меню
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.97f)
-                .padding(start = 10.dp, top = 5.dp, end = 0.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp)
                 .shadow(
-                    elevation = 16.dp,  // высота тени
-                    spotColor = Color.Black.copy(alpha = 0.9f),  // черная направленная тень
-                    shape = RoundedCornerShape(24.dp),  // форма тени (должна совпадать с clip)
+                    elevation = 16.dp,
+                    spotColor = Color.Black.copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(24.dp),
                     clip = false
-                ) // чтобы тень не обрезалась
+                )
                 .clip(RoundedCornerShape(24.dp))
                 .background(c_surf),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-
         ) {
+            // Уведомления и звуки
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(
-                        onClick = {
-                            navController.navigate("settings")
-                        },
+                        onClick = { navController.navigate("settings") },
                         indication = ripple(),
                         interactionSource = remember { MutableInteractionSource() }
                     )
@@ -470,25 +453,24 @@ fun MenuApplication(navController: NavController) {
             ) {
                 Image(
                     painter = painterResource(R.drawable.account_edit_button),
+                    colorFilter = ColorFilter.tint(c_bgtxt),
                     contentDescription = "",
                     modifier = Modifier.size(35.dp)
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
-                    text = "Уведомления и звуки",
+                    text = "Оформление",
                     color = c_bgtxt,
                     fontSize = 18.sp,
                 )
             }
 
-
+            // Безопасность
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(
-                        onClick = {
-                            navController.navigate("security")
-                        },
+                        onClick = { navController.navigate("security") },
                         indication = ripple(),
                         interactionSource = remember { MutableInteractionSource() }
                     )
@@ -497,6 +479,7 @@ fun MenuApplication(navController: NavController) {
             ) {
                 Image(
                     painter = painterResource(R.drawable.account_lock),
+                    colorFilter = ColorFilter.tint(c_bgtxt),
                     contentDescription = "",
                     modifier = Modifier.size(35.dp)
                 )
@@ -507,13 +490,13 @@ fun MenuApplication(navController: NavController) {
                     fontSize = 18.sp,
                 )
             }
+
+            // О приложении
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(
-                        onClick = {
-                            navController.navigate("appinfo")
-                        },
+                        onClick = { navController.navigate("appinfo") },
                         indication = ripple(),
                         interactionSource = remember { MutableInteractionSource() }
                     )
@@ -522,6 +505,7 @@ fun MenuApplication(navController: NavController) {
             ) {
                 Image(
                     painter = painterResource(R.drawable.account_info),
+                    colorFilter = ColorFilter.tint(c_bgtxt),
                     contentDescription = "",
                     modifier = Modifier.size(35.dp)
                 )
@@ -533,9 +517,56 @@ fun MenuApplication(navController: NavController) {
                 )
             }
         }
+
+        // Отступ между карточками
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Отдельная карточка для выхода из аккаунта
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp)
+                .shadow(
+                    elevation = 16.dp,
+                    spotColor = Color.Black.copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(24.dp),
+                    clip = false
+                )
+                .clip(RoundedCornerShape(24.dp))
+                .background(c_surf),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        onClick = {
+                            Firebase.auth.signOut()
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        },
+                        indication = ripple(),
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+                    .padding(horizontal = 25.dp, vertical = 12.5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.account_logout),
+                    colorFilter = ColorFilter.tint(Color.Red),
+                    contentDescription = "Выйти",
+                    modifier = Modifier.size(35.dp)
+                )
+                Spacer(modifier = Modifier.size(10.dp))
+                Text(
+                    text = "Выйти из аккаунта",
+                    color = Color.Red,
+                    fontSize = 18.sp,
+                )
+            }
+        }
     }
 }
-
 @Composable
 fun ChangePhoneDialog(onAddChannel: (String) -> Unit) {
     val phoneNumber = remember { mutableStateOf("") }

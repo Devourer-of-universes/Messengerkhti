@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -73,36 +74,28 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 @Composable
+
 fun MessageScreen(navController: NavController,
                   channelId: String,
-                  ) {
+) {
 
     val viewModel: MessageViewModel = hiltViewModel()
     val messages = viewModel.messages.collectAsState()
 
     LaunchedEffect(key1 = true) {
         viewModel.listenForMessages(channelId)
-
     }
 
-
-
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        content = { innerPadding: PaddingValues -> //системный отступ для верхнего бара
-
-            ContentMessage(
-                modifier = Modifier
-                    .padding(innerPadding),
-                messages, viewModel, channelId,
-                navController as NavHostController
-            )
-
-        }
-    )
-
-
+    // Убираем Scaffold, используем просто Box
+    Box(modifier = Modifier.fillMaxSize()) {
+        ContentMessage(
+            modifier = Modifier.fillMaxSize(),
+            messages,
+            viewModel,
+            channelId,
+            navController as NavHostController
+        )
+    }
 }
 
 
@@ -271,9 +264,11 @@ fun ChatMessages(
                     focusedTextColor = txtMainWhite,
                     focusedContainerColor = c_surf,
                     focusedLabelColor = c_surftxt,
+                    unfocusedIndicatorColor = Color.Transparent, // ← убираем черную полоску
+                    focusedIndicatorColor = Color.Transparent,   // ← убираем черную полоску
                     unfocusedLabelColor = c_surftxt,
                     cursorColor = c_surftxt,
-                    focusedIndicatorColor = c_surftxt,
+
 
                     ),
                 value = msg.value,
@@ -343,6 +338,7 @@ fun ItemMessageOnChat(message: Message) {
         val date = Date(message.createdAT)
         val sdf = SimpleDateFormat("dd/MM/yy\nHH:mm ")
         val formattedDate = sdf.format(date)
+        val nameColor = if (isCurrentUser) c_bgtxt.copy(alpha = 0.8f) else c_acc
 
 
         Row(
@@ -354,13 +350,13 @@ fun ItemMessageOnChat(message: Message) {
             verticalAlignment = Alignment.CenterVertically
         )
         {
-            Image(
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .size(50.dp),
-                painter = painterResource(id = R.drawable.messenger_icon_round),
-                contentDescription = ""
-            )
+//            Image(
+//                modifier = Modifier
+//                    .padding(start = 8.dp)
+//                    .size(50.dp),
+//                painter = painterResource(id = R.drawable.messenger_icon_round),
+//                contentDescription = ""
+//            )
 
 
             Column(
@@ -382,7 +378,7 @@ fun ItemMessageOnChat(message: Message) {
                 )
                 Text(
                     text = message.message,
-                    color = txtMainWhite,
+                    color = c_bgtxt,
                     modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                     fontSize = 15.sp,
                     lineHeight = 15.sp
@@ -394,10 +390,36 @@ fun ItemMessageOnChat(message: Message) {
                         .padding(horizontal = 10.dp),
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.End
-                ) {
+                ) {  // Аватарка - показываем только для чужих сообщений
+                    if (!isCurrentUser) {
+                        Image(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape),
+                            painter = painterResource(id = R.drawable.messenger_icon_round),
+                            contentDescription = "avatar"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    // Сообщение
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                    ) {
+                        // Имя отправителя (только для чужих сообщений)
+                        if (!isCurrentUser) {
+                            Text(
+                                text = message.senderName,
+                                color = nameColor,
+                                fontSize = 12.sp,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                                modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
+                            )
+                        }
                     Text(
                         text = formattedDate,
-                        color = bgMainDarkTheme,
+                        color = c_surftxt,
                         lineHeight = 11.sp,
                         fontSize = 10.sp
                     )
@@ -408,38 +430,6 @@ fun ItemMessageOnChat(message: Message) {
         }
 
     }
-}
+}}
 
 
-//Row(
-
-//) {
-//    Box(
-//        modifier = Modifier
-//            .padding(start = 8.dp)
-//            .clip(RoundedCornerShape(12.dp))
-//            .size(59.dp)
-//            .background(c_accmin)//txtMainSelected)
-//        ,
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Text(
-//            text = channel.name[0].uppercase(),
-//            color = c_bgtxt, //txtMainWhite,
-//            fontSize = 30.sp,
-//        )
-//    }
-//    Column(
-//        modifier = Modifier
-//            .padding(start = 16.dp)
-//
-//    ) {
-//        Text(
-//            text = channel.name,
-//            fontSize = 20.sp,
-//            color = c_bgtxt //txtMainWhite
-//        )
-//        Text(
-//            text = "Иван: ну и бредятина...",
-//            fontSize = 14.sp,
-//            color = c_surftxt

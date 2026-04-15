@@ -82,7 +82,7 @@ fun ContactsScreen(modifier: Modifier = Modifier,
             modifier = modifier
                 .fillMaxSize()
                 .background(
-                    color = bgMainDarkTheme
+                    color = c_bg
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -211,7 +211,7 @@ fun ItemUser(users: UserData, onClick: () -> Unit) {
             Text(
                 text = users.name,
                 fontSize = 20.sp,
-                color = txtMainWhite
+                color = c_bgtxt
             )
             Text(
                 text = '@'+users.userName,
