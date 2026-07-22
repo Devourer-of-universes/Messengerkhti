@@ -15,29 +15,26 @@ class SignInViewModel @Inject constructor(): ViewModel() {
 
     fun signIn(email: String, password: String){
         _state.value = SignInState.Loading
-//        Firebase signIn
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email,password)
+
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-                if (task.isSuccessful){
+                if (task.isSuccessful) {
                     task.result.user?.let {
                         _state.value = SignInState.Success
                         return@addOnCompleteListener
                     }
-                    _state.value = SignInState.Error
-
-                }
-                else{
-                    _state.value = SignInState.Error
+                    _state.value = SignInState.Error("Пользователь не найден")
+                } else {
+                    val errorMessage = task.exception?.message ?: "Ошибка авторизации"
+                    _state.value = SignInState.Error(errorMessage)
                 }
             }
     }
-
 }
 
-sealed class SignInState{
+sealed class SignInState {
     object Nothing : SignInState()
     object Loading : SignInState()
     object Success : SignInState()
-    object Error : SignInState()
-
+    data class Error(val message: String) : SignInState() // ← Добавили поле message
 }
