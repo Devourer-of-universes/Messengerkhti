@@ -1,49 +1,51 @@
 package com.example.myapplication.screen.Login.signUp
 
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.repository.AuthRepository
+import com.example.myapplication.model.RegisterRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SignUpViewModel @Inject constructor() : ViewModel() {
+class SignUpViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
-    private val _state = MutableStateFlow<SignUpState>(SignUpState.Nothing)
-    val state = _state.asStateFlow()
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    fun signUp(name: String, email: String, password: String) {
-        _state.value = SignUpState.Loading
-//        Firebase signUp
-        FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    task.result.user?.let {
-                        it.updateProfile(
-                            com.google.firebase.auth.UserProfileChangeRequest.Builder()
-                                .setDisplayName(name)
-                                .build()
-                        )?.addOnCompleteListener {
-                            _state.value = SignUpState.Success
-                        }
-                        _state.value = SignUpState.Success
-                        return@addOnCompleteListener
-                    }
-                    _state.value = SignUpState.Error
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
-                } else {
-                    _state.value = SignUpState.Error
-                }
+    private val _isRegistered = MutableStateFlow(false)
+    val isRegistered: StateFlow<Boolean> = _isRegistered.asStateFlow()
+
+    fun register(request: RegisterRequest) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            val success = authRepository.register(request)
+            if (success) {
+                _isRegistered.value = true
+            } else {
+                _error.value = authRepository.error.value ?: "Ошибка регистрации"
             }
+
+            _isLoading.value = false
+        }
     }
 
-}
+    fun setError(message: String) {
+        _error.value = message
+    }
 
-sealed class SignUpState {
-    object Nothing : SignUpState()
-    object Loading : SignUpState()
-    object Success : SignUpState()
-    object Error : SignUpState()
-
+    fun clearError() {
+        _error.value = null
+    }
 }

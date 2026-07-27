@@ -1,11 +1,17 @@
 package com.example.myapplication.model
 
-data class Message (
-    val id:String = "",
-    val senderId:String = "",
-    val message:String = "",
-    val createdAT:Long = System.currentTimeMillis(),
-    val senderName:String = "",
-    val senderImage:String? = null,
-    val imageUrl:String? = null,
+data class ChatMessage(
+    val id: Int = 0,
+    val chatId: Int = 0,
+    val userId: Int = 0,
+    val content: String = "",
+    val createdAt: String = "",
+    val surname: String = "",
+    val name: String = "",
+    val avatarUri: String = "",
+    val isEdited: Boolean = false,
+    val isDeleted: Boolean = false
 )
+
+// Для обратной совместимости с вашим кодом
+typealias Message = ChatMessage

@@ -1,198 +1,367 @@
 package com.example.myapplication.screen.Profile
 
-import androidx.compose.ui.draw.shadow
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.ripple
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight.Companion.W500
-import androidx.compose.ui.text.font.FontWeight.Companion.W700
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.myapplication.R
-import com.example.myapplication.model.UserData
-import com.example.myapplication.ui.theme.accentBlue
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import com.example.myapplication.model.User
+import com.example.myapplication.ui.components.LoadingIndicator
+import com.example.myapplication.utils.TokenManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    modifier: Modifier = Modifier,
     navController: NavController,
-    rootNavController: NavController // Добавляем корневой NavController
+    modifier: Modifier = Modifier,
+    viewModel: ProfileScreenViewModel = hiltViewModel()
 ) {
-    val viewModel: ProfileScreenViewModel = hiltViewModel()
-    val userData = viewModel.userData.collectAsState()
+    val user by viewModel.user.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val unreadCount by viewModel.unreadCount.collectAsState()
+    val tasksCount by viewModel.tasksCount.collectAsState()
 
-    val isChangePhone = remember {
-        mutableStateOf(false)
-    }
-    val isChangeUsername = remember {
-        mutableStateOf(false)
-    }
-    val sheetState = rememberModalBottomSheetState()
-
-    LaunchedEffect(key1 = true) {
-        viewModel.initProfile()
+    LaunchedEffect(Unit) {
+        viewModel.loadProfile()
+        viewModel.loadUnreadCount()
+        viewModel.loadTasksCount()
     }
 
-    val c_bg = MaterialTheme.colorScheme.background
-    val c_bgtxt = MaterialTheme.colorScheme.onBackground
-    val c_surf = MaterialTheme.colorScheme.surface
-    val c_surftxt = MaterialTheme.colorScheme.onSurface
-    val c_acc = MaterialTheme.colorScheme.primary
-    val c_accmin = MaterialTheme.colorScheme.secondary
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Профиль",
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                actions = {
+                    IconButton(onClick = { navController.navigate("settings") }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Настройки",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            when {
+                isLoading -> LoadingIndicator()
+                error != null -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text("Ошибка: $error")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { viewModel.loadProfile() }) {
+                            Text("Повторить")
+                        }
+                    }
+                }
+                user != null -> {
+                    ProfileContent(
+                        user = user!!,
+                        unreadCount = unreadCount,
+                        tasksCount = tasksCount,
+                        onItemClick = { route ->
+                            navController.navigate(route)
+                        },
+                        onLogout = {
+                            viewModel.logout()
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+                else -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text("Пользователь не найден")
+                        Button(onClick = { viewModel.loadProfile() }) {
+                            Text("Обновить")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileContent(
+    user: User,
+    unreadCount: Int,
+    tasksCount: Int,
+    onItemClick: (String) -> Unit,
+    onLogout: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
 
     LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(color = c_bg)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // ===== ШАПКА ПРОФИЛЯ =====
         item {
-            HeaderProfile(navController, userData)
-        }
-
-        item {
-            InfoProfile(
-                userData,
-                onPhoneClick = { isChangePhone.value = true },
-                onUsernameClick = { isChangeUsername.value = true }
-            )
-        }
-
-        item {
-            MenuApplication(
-                navController = navController,
-                rootNavController = rootNavController // Передаем корневой контроллер
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-
-    if (isChangePhone.value) {
-        ModalBottomSheet(
-            containerColor = c_surf,
-            onDismissRequest = { isChangePhone.value = false },
-            sheetState = sheetState
-        ) {
-            ChangePhoneDialog {
-                viewModel.changePhone(it)
-                isChangePhone.value = false
-            }
-        }
-    }
-
-    if (isChangeUsername.value) {
-        ModalBottomSheet(
-            containerColor = c_surf,
-            onDismissRequest = { isChangeUsername.value = false },
-            sheetState = sheetState
-        ) {
-            ChangeUsernameDialog {
-                viewModel.changeUsername(it)
-                isChangeUsername.value = false
-            }
-        }
-    }
-}
-
-// Перечисление для типов элементов
-enum class ProfileItemType {
-    Header,
-    Info,
-    Menu
-}
-
-@Composable
-fun HeaderProfile(navController: NavController, userData: State<UserData>) {
-    val c_bg = MaterialTheme.colorScheme.background
-    val c_bgtxt = MaterialTheme.colorScheme.onBackground
-    val c_surf = MaterialTheme.colorScheme.surface
-    val c_surftxt = MaterialTheme.colorScheme.onSurface
-    val c_acc = MaterialTheme.colorScheme.primary
-    val c_accmin = MaterialTheme.colorScheme.secondary
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(color = c_bg)
-            .height(175.dp)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                modifier = Modifier.fillMaxHeight(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Image(
-                    painter = painterResource(R.drawable.accont_profileavatar),
-                    contentDescription = "",
-                    contentScale = ContentScale.Crop,
+                Column(
                     modifier = Modifier
-                        .size(120.dp)
-                        .shadow(3.dp, CircleShape)
-                        .clip(CircleShape)
-                        .clickable(
-                            onClick = {},
-                            indication = ripple(),
-                            interactionSource = remember { MutableInteractionSource() }
-                        ),
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Аватар
+                    Surface(
+                        modifier = Modifier.size(100.dp),
+                        shape = CircleShape,
+                        color = colors.primaryContainer
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = user.name.take(1).uppercase(),
+                                fontSize = 40.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colors.primary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // ФИО
+                    Text(
+                        text = "${user.surname} ${user.name} ${user.patronymic}",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.onSurface
+                    )
+
+                    // Должность
+                    if (user.postName.isNotEmpty()) {
+                        Text(
+                            text = user.postName,
+                            fontSize = 14.sp,
+                            color = colors.onSurfaceVariant
+                        )
+                    }
+
+                    // Отдел
+                    if (user.departmentName.isNotEmpty()) {
+                        Text(
+                            text = "🏢 ${user.departmentName}",
+                            fontSize = 14.sp,
+                            color = colors.onSurfaceVariant
+                        )
+                    }
+
+                    // Статус
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = if (user.status == "active")
+                            Color.Green.copy(alpha = 0.1f)
+                        else
+                            Color.Gray.copy(alpha = 0.1f)
+                    ) {
+                        Text(
+                            text = if (user.status == "active") "🟢 Активен" else "⚪ Не в сети",
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            color = if (user.status == "active") Color.Green else Color.Gray
+                        )
+                    }
+                }
+            }
+        }
+
+        // ===== СТАТИСТИКА =====
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                StatCard(
+                    value = unreadCount.toString(),
+                    label = "Уведомления",
+                    icon = Icons.Default.Notifications,
+                    color = colors.primary,
+                    onClick = { onItemClick("notifications") },
+                    modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.size(15.dp))
+                StatCard(
+                    value = tasksCount.toString(),
+                    label = "Задачи",
+                    icon = Icons.Default.Task,
+                    color = colors.tertiary,
+                    onClick = { onItemClick("tasks") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        // ===== МЕНЮ =====
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    MenuItem(
+                        icon = Icons.Default.Info,
+                        title = "Личная информация",
+                        subtitle = "Редактировать профиль",
+                        onClick = { onItemClick("profile_info") }
+                    )
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                    MenuItem(
+                        icon = Icons.Default.Dashboard,
+                        title = "Дашборд",
+                        subtitle = "Статистика и задачи",
+                        onClick = { onItemClick("dashboard") }
+                    )
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                    MenuItem(
+                        icon = Icons.Default.Notifications,
+                        title = "Уведомления",
+                        subtitle = if (unreadCount > 0) "$unreadCount непрочитанных" else "Нет новых",
+                        badge = if (unreadCount > 0) unreadCount.toString() else null,
+                        onClick = { onItemClick("notifications") }
+                    )
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                    MenuItem(
+                        icon = Icons.Default.Settings,
+                        title = "Настройки",
+                        subtitle = "Тема, безопасность",
+                        onClick = { onItemClick("settings") }
+                    )
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                    MenuItem(
+                        icon = Icons.Default.Help,
+                        title = "О приложении",
+                        subtitle = "Версия 1.0.0",
+                        onClick = { onItemClick("appinfo") }
+                    )
+                }
+            }
+        }
+
+        // ===== ВЫХОД =====
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = colors.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onLogout() }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = "Выход",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Выйти из аккаунта",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StatCard(
+    value: String,
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(80.dp)
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(28.dp)
+            )
+            Column {
                 Text(
-                    text = userData.value.name,
-                    color = c_bgtxt,
-                    fontSize = 20.sp
+                    text = value,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = label,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -200,433 +369,59 @@ fun HeaderProfile(navController: NavController, userData: State<UserData>) {
 }
 
 @Composable
-fun InfoProfile(
-    userData: State<UserData>,
-    onPhoneClick: () -> Unit,
-    onUsernameClick: () -> Unit,
-) {
-    val c_bg = MaterialTheme.colorScheme.background
-    val c_bgtxt = MaterialTheme.colorScheme.onBackground
-    val c_surf = MaterialTheme.colorScheme.surface
-    val c_surftxt = MaterialTheme.colorScheme.onSurface
-    val c_acc = MaterialTheme.colorScheme.primary
-    val c_accmin = MaterialTheme.colorScheme.secondary
-
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 15.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Личная информация",
-                color = c_bgtxt,
-                fontSize = 20.sp,
-                fontWeight = W700
-            )
-
-            Image(
-                painter = painterResource(R.drawable.account_edit_button),
-                colorFilter = ColorFilter.tint(c_bgtxt),
-                contentDescription = "",
-                modifier = Modifier
-                    .size(30.dp)
-                    .clickable(
-                        onClick = {},
-                        indication = ripple(),
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
-            )
-        }
-
-        val tdxDataPhone =
-            if (userData.value.phone == "Введите телефон") "Введите телефон" else "+7 ${userData.value.phone}"
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp)
-                .shadow(
-                    elevation = 16.dp,
-                    spotColor = Color.Black.copy(alpha = 0.9f),
-                    shape = RoundedCornerShape(24.dp),
-                    clip = false
-                )
-                .clip(RoundedCornerShape(24.dp))
-                .background(c_surf),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            ProfileRowAccounts(
-                txtHeader = "Имя пользователя",
-                txtData = userData.value.userName,
-                onClick = onUsernameClick
-            )
-            ProfileRowAccounts(
-                txtHeader = "Номер телефона",
-                txtData = tdxDataPhone,
-                onClick = onPhoneClick
-            )
-            ProfileRowAccounts(
-                txtHeader = "Должность",
-                txtData = userData.value.userName,
-                onClick = onUsernameClick
-            )
-            ProfileRowAccounts(
-                txtHeader = "Подразделение",
-                txtData = userData.value.userName,
-                onClick = onUsernameClick
-            )
-            ProfileRowAccounts(
-                txtHeader = "Возраст",
-                txtData = userData.value.userName,
-                onClick = onUsernameClick
-            )
-            ProfileRowAccounts(
-                txtHeader = "Стаж работы",
-                txtData = userData.value.userName,
-                onClick = onUsernameClick
-            )
-        }
-    }
-
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 15.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Контакты",
-                color = c_bgtxt,
-                fontSize = 20.sp,
-                fontWeight = W700
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp)
-                .shadow(
-                    elevation = 16.dp,
-                    spotColor = Color.Black.copy(alpha = 0.9f),
-                    shape = RoundedCornerShape(24.dp),
-                    clip = false
-                )
-                .clip(RoundedCornerShape(24.dp))
-                .background(c_surf),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            ProfileRowAccounts(
-                txtHeader = "Телефон",
-                txtData = userData.value.phone,
-                onClick = onPhoneClick
-            )
-            ProfileRowAccounts(
-                txtHeader = "Почта",
-                txtData = userData.value.email,
-                onClick = onUsernameClick
-            )
-        }
-    }
-}
-
-@Composable
-fun ProfileRowAccounts(
-    txtHeader: String,
-    txtData: String,
+fun MenuItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
     onClick: () -> Unit,
+    badge: String? = null
 ) {
-    val c_bgtxt = MaterialTheme.colorScheme.onBackground
-    val c_acc = MaterialTheme.colorScheme.primary
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 25.dp, vertical = 5.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .clickable { onClick() }
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = txtHeader,
-            color = c_bgtxt,
-            fontSize = 16.sp,
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
         )
-
-        TextButton(onClick = onClick) {
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = txtData,
-                color = c_acc,
-                fontSize = 16.sp,
-                fontWeight = W500,
+                text = title,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = subtitle,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-}
-
-@Composable
-fun MenuApplication(
-    navController: NavController,
-    rootNavController: NavController
-) {
-    val c_bgtxt = MaterialTheme.colorScheme.onBackground
-    val c_surf = MaterialTheme.colorScheme.surface
-
-    Column {
-        Text(
-            text = "Настройки",
-            color = c_bgtxt,
-            fontSize = 20.sp,
-            fontWeight = W700,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 15.dp)
-        )
-
-        // Карточка с основными пунктами меню
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp)
-                .shadow(
-                    elevation = 16.dp,
-                    spotColor = Color.Black.copy(alpha = 0.9f),
-                    shape = RoundedCornerShape(24.dp),
-                    clip = false
-                )
-                .clip(RoundedCornerShape(24.dp))
-                .background(c_surf),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        onClick = { navController.navigate("settings") },
-                        indication = ripple(),
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
-                    .padding(horizontal = 25.dp, vertical = 12.5.dp),
-                verticalAlignment = Alignment.CenterVertically
+        if (badge != null) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(20.dp)
             ) {
-                Image(
-                    painter = painterResource(R.drawable.account_edit_button),
-                    colorFilter = ColorFilter.tint(c_bgtxt),
-                    contentDescription = "",
-                    modifier = Modifier.size(35.dp)
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                Text(
-                    text = "Оформление",
-                    color = c_bgtxt,
-                    fontSize = 18.sp,
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        onClick = { navController.navigate("security") },
-                        indication = ripple(),
-                        interactionSource = remember { MutableInteractionSource() }
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = badge,
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                    .padding(horizontal = 25.dp, vertical = 12.5.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.account_lock),
-                    colorFilter = ColorFilter.tint(c_bgtxt),
-                    contentDescription = "",
-                    modifier = Modifier.size(35.dp)
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                Text(
-                    text = "Безопасность",
-                    color = c_bgtxt,
-                    fontSize = 18.sp,
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        onClick = { navController.navigate("appinfo") },
-                        indication = ripple(),
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
-                    .padding(horizontal = 25.dp, vertical = 12.5.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.account_info),
-                    colorFilter = ColorFilter.tint(c_bgtxt),
-                    contentDescription = "",
-                    modifier = Modifier.size(35.dp)
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                Text(
-                    text = "О приложении",
-                    color = c_bgtxt,
-                    fontSize = 18.sp,
-                )
+                }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Отдельная карточка для выхода из аккаунта
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp)
-                .shadow(
-                    elevation = 16.dp,
-                    spotColor = Color.Black.copy(alpha = 0.9f),
-                    shape = RoundedCornerShape(24.dp),
-                    clip = false
-                )
-                .clip(RoundedCornerShape(24.dp))
-                .background(c_surf),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        onClick = {
-                            // Выход из аккаунта
-                            Firebase.auth.signOut()
-                            // Используем корневой NavController для навигации на экран входа
-                            rootNavController.navigate("login") {
-                                popUpTo(0) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-                        indication = ripple(),
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
-                    .padding(horizontal = 25.dp, vertical = 12.5.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.account_logout),
-                    colorFilter = ColorFilter.tint(Color.Red),
-                    contentDescription = "Выйти",
-                    modifier = Modifier.size(35.dp)
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                Text(
-                    text = "Выйти из аккаунта",
-                    color = Color.Red,
-                    fontSize = 18.sp,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ChangePhoneDialog(onAddChannel: (String) -> Unit) {
-    val phoneNumber = remember { mutableStateOf("") }
-    val c_bg = MaterialTheme.colorScheme.background
-    val c_bgtxt = MaterialTheme.colorScheme.onBackground
-    val c_surf = MaterialTheme.colorScheme.surface
-
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = "Изменить телефон",
-            color = c_bgtxt,
-            fontSize = 25.sp
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.padding(8.dp))
-        TextField(
-            colors = TextFieldDefaults.colors(
-                unfocusedTextColor = c_bg,
-                unfocusedContainerColor = c_surf,
-                focusedTextColor = c_bgtxt,
-                focusedContainerColor = c_surf,
-                focusedLabelColor = c_bgtxt,
-                unfocusedLabelColor = c_bgtxt,
-                cursorColor = c_bgtxt,
-                focusedIndicatorColor = c_bgtxt,
-            ),
-            value = phoneNumber.value,
-            onValueChange = {
-                phoneNumber.value = it.filter { it.isDigit() }.take(10)
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            placeholder = { Text("Введите номер без +7") },
-            label = { Text(text = "Телефон") },
-            singleLine = true,
-        )
-        Spacer(modifier = Modifier.padding(8.dp))
-        Button(
-            onClick = { onAddChannel(phoneNumber.value) },
-            modifier = Modifier.padding(horizontal = 40.dp, vertical = 5.dp),
-            colors = ButtonDefaults.buttonColors(accentBlue),
-            enabled = phoneNumber.value.length == 10
-        ) {
-            Text(text = "Изменить")
-        }
-    }
-}
-
-@Composable
-fun ChangeUsernameDialog(onAddChannel: (String) -> Unit) {
-    val userName = remember { mutableStateOf("") }
-    val c_bg = MaterialTheme.colorScheme.background
-    val c_bgtxt = MaterialTheme.colorScheme.onBackground
-    val c_surf = MaterialTheme.colorScheme.surface
-
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = "Изменить имя пользователя",
-            color = c_bgtxt,
-            fontSize = 25.sp
-        )
-        Spacer(modifier = Modifier.padding(8.dp))
-        TextField(
-            colors = TextFieldDefaults.colors(
-                unfocusedTextColor = c_bg,
-                unfocusedContainerColor = c_surf,
-                focusedTextColor = c_bgtxt,
-                focusedContainerColor = c_surf,
-                focusedLabelColor = c_bgtxt,
-                unfocusedLabelColor = c_bgtxt,
-                cursorColor = c_bgtxt,
-                focusedIndicatorColor = c_bgtxt,
-            ),
-            value = userName.value,
-            onValueChange = { userName.value = it.take(25) },
-            label = { Text(text = "Имя пользователя") },
-            singleLine = true,
-        )
-        Spacer(modifier = Modifier.padding(8.dp))
-        Button(
-            onClick = { onAddChannel(userName.value) },
-            modifier = Modifier.padding(horizontal = 40.dp, vertical = 5.dp),
-            colors = ButtonDefaults.buttonColors(accentBlue),
-            enabled = userName.value.length >= 3
-        ) {
-            Text(text = "Изменить")
-        }
     }
 }

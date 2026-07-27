@@ -22,7 +22,8 @@ val bgMainLightTheme = Color(0xFFE8E8E8)
 val bgSecLightTheme = Color(0xFFFDFDFD)
 
 val txtMainBlack = Color(0xFF010101)
-val txtMainGrey = Color(0xFF9B9B9B)
+val txtMainGreyLight = Color(0xAAFFFFFF)
+val txtMainGreyDark = Color(0x66010101)
 val txtMainWhite = Color(0xFFFFFFFF)
 
 val bgMainDarkTheme = Color(0xFF32343E)

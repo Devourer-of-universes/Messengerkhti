@@ -37,143 +37,157 @@ fun SecurityScreen(
     val c_bgtxt = MaterialTheme.colorScheme.onBackground
     val c_surf = MaterialTheme.colorScheme.surface
     val c_acc = MaterialTheme.colorScheme.primary
-
-    // Убираем Scaffold полностью, используем простой Column
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(c_bg)
-    ) {
-        // === ШАПКА С КНОПКОЙ НАЗАД ===
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp) // Уменьшили с 60.dp до 56.dp
-                .background(c_acc),
-            contentAlignment = Alignment.Center
-        ) {
-            IconButton(
-                onClick = {
-                    navController.navigateUp()
-                },
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        content = { innerPadding: PaddingValues ->
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .size(48.dp)
+                    .fillMaxSize()
+                    .background(c_bg)
+                    .padding(innerPadding)
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Назад",
-                    tint = c_bgtxt
-                )
-            }
-
-            Text(
-                text = "Безопасность",
-                fontSize = 22.sp,
-                color = c_bgtxt,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-
-        // === Контент с прокруткой ===
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp) // Небольшие отступы для контента
-        ) {
-            // === АКТИВНЫЕ СЕССИИ ===
-            item {
-                SecurityHeader(title = "Активные сессии")
-            }
-
-            item {
-                SecurityCard {
-                    val sessions = remember {
-                        listOf(
-                            ActiveSession(
-                                id = "1",
-                                deviceType = DeviceType.COMPUTER,
-                                deviceName = "MacBook Pro",
-                                osVersion = "macOS 14",
-                                browser = "Chrome",
-                                location = "Москва, Россия",
-                                ipAddress = "192.168.1.100",
-                                lastActive = Date(System.currentTimeMillis() - 5 * 60 * 1000),
-                                isCurrentSession = true
-                            ),
-                            ActiveSession(
-                                id = "2",
-                                deviceType = DeviceType.PHONE,
-                                deviceName = "Xiaomi Redmi Note 10",
-                                osVersion = "Android 13",
-                                location = "Москва, Россия",
-                                ipAddress = "192.168.1.101",
-                                lastActive = Date(System.currentTimeMillis() - 2 * 60 * 60 * 1000)
-                            ),
-                            ActiveSession(
-                                id = "3",
-                                deviceType = DeviceType.TABLET,
-                                deviceName = "iPad Pro",
-                                osVersion = "iPadOS 17",
-                                browser = "Safari",
-                                location = "Санкт-Петербург, Россия",
-                                ipAddress = "192.168.1.102",
-                                lastActive = Date(System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000)
+                // Убираем Scaffold полностью, используем простой Column
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(c_bg)
+                ) {
+                    // === ШАПКА С КНОПКОЙ НАЗАД ===
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp) // Уменьшили с 60.dp до 56.dp
+                            .background(c_acc),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        IconButton(
+                            onClick = {
+                                navController.navigateUp()
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Назад",
+                                tint = c_bgtxt
                             )
+                        }
+
+                        Text(
+                            text = "Безопасность",
+                            fontSize = 22.sp,
+                            color = c_bgtxt,
+                            modifier = Modifier.align(Alignment.Center)
                         )
                     }
 
-                    var activeSessions by remember { mutableStateOf(sessions) }
-
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        activeSessions.forEach { session ->
-                            ActiveSessionCard(
-                                session = session,
-                                onTerminate = { sessionId ->
-                                    activeSessions = activeSessions.filter { it.id != sessionId }
-                                }
-                            )
+                    // === Контент с прокруткой ===
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp) // Небольшие отступы для контента
+                    ) {
+                        // === АКТИВНЫЕ СЕССИИ ===
+                        item {
+                            SecurityHeader(title = "Активные сессии")
                         }
-                    }
 
-                    if (activeSessions.size > 1) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        item {
+                            SecurityCard {
+                                val sessions = remember {
+                                    listOf(
+                                        ActiveSession(
+                                            id = "1",
+                                            deviceType = DeviceType.COMPUTER,
+                                            deviceName = "MacBook Pro",
+                                            osVersion = "macOS 14",
+                                            browser = "Chrome",
+                                            location = "Москва, Россия",
+                                            ipAddress = "192.168.1.100",
+                                            lastActive = Date(System.currentTimeMillis() - 5 * 60 * 1000),
+                                            isCurrentSession = true
+                                        ),
+                                        ActiveSession(
+                                            id = "2",
+                                            deviceType = DeviceType.PHONE,
+                                            deviceName = "Xiaomi Redmi Note 10",
+                                            osVersion = "Android 13",
+                                            location = "Москва, Россия",
+                                            ipAddress = "192.168.1.101",
+                                            lastActive = Date(System.currentTimeMillis() - 2 * 60 * 60 * 1000)
+                                        ),
+                                        ActiveSession(
+                                            id = "3",
+                                            deviceType = DeviceType.TABLET,
+                                            deviceName = "iPad Pro",
+                                            osVersion = "iPadOS 17",
+                                            browser = "Safari",
+                                            location = "Санкт-Петербург, Россия",
+                                            ipAddress = "192.168.1.102",
+                                            lastActive = Date(System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000)
+                                        )
+                                    )
+                                }
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(
-                                    onClick = {
-                                        activeSessions = activeSessions.filter { it.isCurrentSession }
-                                    },
-                                    indication = ripple(),
-                                    interactionSource = remember { MutableInteractionSource() }
-                                )
-                                .padding(horizontal = 25.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.account_lock),
-                                colorFilter = ColorFilter.tint(Color.Red), // Добавили tint для цвета
-                                contentDescription = "",
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.size(8.dp))
-                            Text(
-                                text = "Завершить все остальные сессии",
-                                color = Color.Red,
-                                fontSize = 14.sp
-                            )
+                                var activeSessions by remember { mutableStateOf(sessions) }
+
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    activeSessions.forEach { session ->
+                                        ActiveSessionCard(
+                                            session = session,
+                                            onTerminate = { sessionId ->
+                                                activeSessions =
+                                                    activeSessions.filter { it.id != sessionId }
+                                            }
+                                        )
+                                    }
+                                }
+
+                                if (activeSessions.size > 1) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable(
+                                                onClick = {
+                                                    activeSessions =
+                                                        activeSessions.filter { it.isCurrentSession }
+                                                },
+                                                indication = ripple(),
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            )
+                                            .padding(horizontal = 25.dp, vertical = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Image(
+                                            painter = painterResource(R.drawable.account_lock),
+                                            colorFilter = ColorFilter.tint(Color.Red), // Добавили tint для цвета
+                                            contentDescription = "",
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Spacer(modifier = Modifier.size(8.dp))
+                                        Text(
+                                            text = "Завершить все остальные сессии",
+                                            color = Color.Red,
+                                            fontSize = 14.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }
             }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
         }
-    }
+    )
+
 }
 
 @Composable

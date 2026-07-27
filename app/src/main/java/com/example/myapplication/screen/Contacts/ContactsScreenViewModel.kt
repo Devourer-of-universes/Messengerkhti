@@ -1,61 +1,54 @@
 package com.example.myapplication.screen.Contacts
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.myapplication.DataMessanger.CHILD_CREATED_AT
-import com.example.myapplication.DataMessanger.NODE_CHANNELS
-import com.example.myapplication.DataMessanger.NODE_MESSAGES
-import com.example.myapplication.DataMessanger.NODE_USERS
-import com.example.myapplication.model.Channel
-import com.example.myapplication.model.Message
-import com.example.myapplication.model.UserData
-import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
+import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.repository.UserRepository
+import com.example.myapplication.model.User
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class ContactsScreenViewModel @Inject constructor() : ViewModel() {
-    private val firebaseDatabase = Firebase.database
-    private val firebaseAuth = FirebaseAuth.getInstance()
-    private val _users = MutableStateFlow<List<UserData>>(emptyList())
-    val users = _users.asStateFlow()
+@HiltViewModel
+class ContactsScreenViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
 
-    init {
-        getUsers()
-    }
+    private val _contacts = MutableStateFlow<List<User>>(emptyList())
+    val contacts: StateFlow<List<User>> = _contacts.asStateFlow()
 
-    private fun getUsers() {
-        firebaseDatabase.getReference(NODE_USERS)
-            .addValueEventListener(object : ValueEventListener {
+    private val _allUsers = MutableStateFlow<List<User>>(emptyList())
+    val allUsers: StateFlow<List<User>> = _allUsers.asStateFlow()
 
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val list = mutableListOf<UserData>()
-                    snapshot.children.forEach { data ->
-                        val message = data.getValue(UserData::class.java)
-                        message?.let {
-                            list.add(it)
-                        }
-                    }
-                    _users.value = list
-                }
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-                override fun onCancelled(error: DatabaseError) {
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
-                }
-            })
-    }
-    fun getIndividualChatId(otherUserId: String): String {
-        val currentUserId = firebaseAuth.currentUser?.uid ?: return ""
-        return if (currentUserId < otherUserId) {
-            "${currentUserId}_${otherUserId}"
-        } else {
-            "${otherUserId}_${currentUserId}"
+    fun loadContacts(userId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            userRepository.getContacts().collect { contactsList ->
+                _contacts.value = contactsList
+                _isLoading.value = false
+            }
         }
     }
 
+    fun loadUsers() {
+        viewModelScope.launch {
+            userRepository.getUsers().collect { usersList ->
+                _allUsers.value = usersList
+            }
+        }
+    }
+
+    fun clearError() {
+        _error.value = null
+    }
 }

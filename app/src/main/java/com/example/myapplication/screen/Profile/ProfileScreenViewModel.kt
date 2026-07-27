@@ -1,85 +1,103 @@
 package com.example.myapplication.screen.Profile
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.myapplication.DataMessanger.CHILD_CREATED_AT
-import com.example.myapplication.DataMessanger.NODE_CHANNELS
-import com.example.myapplication.DataMessanger.NODE_MESSAGES
-import com.example.myapplication.DataMessanger.NODE_USERS
-import com.example.myapplication.model.Channel
-import com.example.myapplication.model.Message
-import com.example.myapplication.model.UserData
-import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
+import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.repository.AuthRepository
+import com.example.myapplication.data.repository.TaskRepository
+import com.example.myapplication.model.User
+import com.example.myapplication.utils.TokenManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class ProfileScreenViewModel @Inject constructor() : ViewModel() {
+@HiltViewModel
+class ProfileScreenViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val taskRepository: TaskRepository
+) : ViewModel() {
 
-    val TAG = "profile"
+    private val _user = MutableStateFlow<User?>(null)
+    val user: StateFlow<User?> = _user.asStateFlow()
 
-    private val firebaseDatabase = Firebase.database
+    private val _unreadCount = MutableStateFlow(0)
+    val unreadCount: StateFlow<Int> = _unreadCount.asStateFlow()
 
-    private val _userData = MutableStateFlow(UserData())
-    val userData = _userData.asStateFlow()
-    val uid = FirebaseAuth.getInstance().uid ?: ""
+    private val _tasksCount = MutableStateFlow(0)
+    val tasksCount: StateFlow<Int> = _tasksCount.asStateFlow()
 
-    fun initProfile() {
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-        firebaseDatabase.getReference(NODE_USERS).child(uid)
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val userData: UserData? = dataSnapshot.getValue(UserData::class.java)
-                    if (userData != null) {
-                        _userData.update { currentUserData ->
-                            userData
-                        }
-                    }
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
+    init {
+        // Загружаем пользователя из кэша
+        val cachedUser = authRepository.currentUser.value
+        if (cachedUser != null) {
+            _user.value = cachedUser
+        }
+    }
+
+    fun loadProfile() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            try {
+                val user = authRepository.getCurrentUser()
+                if (user != null) {
+                    _user.value = user
+                } else {
+                    _error.value = "Не удалось загрузить профиль"
                 }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d(TAG, "Ошибка: ${error.message}")
-                }
-
-            })
-
-
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Ошибка загрузки"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
-
-    fun changePhone(phone: String) {
-        val updates = HashMap<String, Any>()
-        updates["phone"] = phone
-        firebaseDatabase.getReference(NODE_USERS).child(uid).updateChildren(updates)
-            .addOnSuccessListener {
-                Log.d(TAG, "Телефон успешно обновлён!")
-                initProfile()
+    fun loadUnreadCount() {
+        viewModelScope.launch {
+            try {
+                // TODO: Реализовать получение количества непрочитанных
+                // Пока заглушка
+                _unreadCount.value = 3
+            } catch (e: Exception) {
+                // Игнорируем
             }
-            .addOnFailureListener { error ->
-                Log.e(TAG, "Ошибка при обновлении телефона: ${error.message}")
-            }
+        }
     }
 
-
-    fun changeUsername(username: String) {
-        val updates = HashMap<String, Any>()
-        updates["userName"] = username
-        firebaseDatabase.getReference(NODE_USERS).child(uid).updateChildren(updates)
-            .addOnSuccessListener {
-                Log.d(TAG, "Имя пользователя успешно обновлёно!")
-                initProfile()
+    fun loadTasksCount() {
+        viewModelScope.launch {
+            try {
+                taskRepository.loadTasks(status = "pending,in_progress")
+                _tasksCount.value = taskRepository.tasks.value.size
+            } catch (e: Exception) {
+                // Игнорируем
             }
-            .addOnFailureListener { error ->
-                Log.e(TAG, "Ошибка при обновлении имени пользователя: ${error.message}")
-            }
+        }
     }
 
+    fun logout() {
+        viewModelScope.launch {
+            try {
+                authRepository.logout()
+            } catch (e: Exception) {
+                // Игнорируем
+            } finally {
+                TokenManager.clearTokens()
+            }
+        }
+    }
 
+    fun clearError() {
+        _error.value = null
+    }
 }

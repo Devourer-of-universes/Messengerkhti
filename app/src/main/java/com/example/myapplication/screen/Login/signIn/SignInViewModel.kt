@@ -1,40 +1,50 @@
 package com.example.myapplication.screen.Login.signIn
 
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SignInViewModel @Inject constructor(): ViewModel() {
+class SignInViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
-    private val _state = MutableStateFlow<SignInState>(SignInState.Nothing)
-    val state = _state.asStateFlow()
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    fun signIn(email: String, password: String){
-        _state.value = SignInState.Loading
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    task.result.user?.let {
-                        _state.value = SignInState.Success
-                        return@addOnCompleteListener
-                    }
-                    _state.value = SignInState.Error("Пользователь не найден")
-                } else {
-                    val errorMessage = task.exception?.message ?: "Ошибка авторизации"
-                    _state.value = SignInState.Error(errorMessage)
-                }
-            }
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+
+    init {
+        _isLoggedIn.value = com.example.myapplication.utils.TokenManager.isLoggedIn()
     }
-}
 
-sealed class SignInState {
-    object Nothing : SignInState()
-    object Loading : SignInState()
-    object Success : SignInState()
-    data class Error(val message: String) : SignInState() // ← Добавили поле message
+    fun login(email: String, password: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            val success = authRepository.login(email, password)
+            if (success) {
+                _isLoggedIn.value = true
+            } else {
+                _error.value = authRepository.error.value ?: "Ошибка входа"
+            }
+
+            _isLoading.value = false
+        }
+    }
+
+    fun clearError() {
+        _error.value = null
+    }
 }

@@ -48,10 +48,27 @@ android {
 }
 
 dependencies {
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    // Gson
+    implementation("com.google.code.gson:gson:2.10.1")
+    // WebSocket (Socket.IO)
+    implementation("io.socket:socket.io-client:2.0.1")
+
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation(libs.androidx.compose.animation.core)
+    implementation(libs.androidx.compose.runtime.saveable)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.foundation.layout)
 
     implementation(libs.androidx.navigation.compose)
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
+    implementation(libs.androidx.runtime)
 
     implementation(libs.dagger.hilt.android)
     implementation(libs.firebase.crashlytics.buildtools)

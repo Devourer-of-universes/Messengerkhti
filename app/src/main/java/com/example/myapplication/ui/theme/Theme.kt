@@ -49,7 +49,7 @@ fun MyApplicationTheme(
             background = bgMainDarkTheme,
             surface = bgSecDarkTheme,
             onBackground = txtMainWhite,
-            onSurface = txtMainGrey
+            onSurface = txtMainGreyLight
         )
     } else {
         lightColorScheme(
@@ -58,7 +58,7 @@ fun MyApplicationTheme(
             background = bgMainLightTheme,
             surface = bgSecLightTheme,
             onBackground = txtMainBlack,
-            onSurface = txtMainGrey
+            onSurface = txtMainGreyDark
         )
     }
 

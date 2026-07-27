@@ -44,131 +44,142 @@ fun SettingsScreen(
     var notificationsEnabled by remember { mutableStateOf(true) }
     var soundEnabled by remember { mutableStateOf(true) }
     var vibrationEnabled by remember { mutableStateOf(false) }
-
-    // Убираем Scaffold, используем простой Column
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(c_bg)
-    ) {
-        // Верхняя панель
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(c_acc),
-            contentAlignment = Alignment.Center
-        ) {
-            IconButton(
-                onClick = { navController.popBackStack() },
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        content = { innerPadding: PaddingValues ->
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .size(48.dp)
+                    .fillMaxSize()
+                    .background(c_bg)
+                    .padding(innerPadding)
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Назад",
-                    tint = c_bgtxt
-                )
-            }
 
-            Text(
-                text = "Оформление",
-                fontSize = 22.sp,
-                color = c_bgtxt,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(c_bg)
+                ) {
+                    // Верхняя панель
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .background(c_acc),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        IconButton(
+                            onClick = { navController.popBackStack() },
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Назад",
+                                tint = c_bgtxt
+                            )
+                        }
 
-        // Контент с прокруткой
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp)
-        ) {
-            // === ТЕМА ОФОРМЛЕНИЯ ===
-            item {
-                SettingsHeader(title = "Тема оформления")
-            }
+                        Text(
+                            text = "Оформление",
+                            fontSize = 22.sp,
+                            color = c_bgtxt,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
 
-            item {
-                SettingsCard {
-                    ThemeOption(
-                        text = "Как в системе",
-                        selected = currentThemeMode == ThemeMode.SYSTEM,
-                        onClick = { onChangeThemeMode(ThemeMode.SYSTEM) }
-                    )
-                    ThemeOption(
-                        text = "Светлая",
-                        selected = currentThemeMode == ThemeMode.LIGHT,
-                        onClick = { onChangeThemeMode(ThemeMode.LIGHT) }
-                    )
-                    ThemeOption(
-                        text = "Тёмная",
-                        selected = currentThemeMode == ThemeMode.DARK,
-                        onClick = { onChangeThemeMode(ThemeMode.DARK) }
-                    )
-                }
-            }
+                    // Контент с прокруткой
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        // === ТЕМА ОФОРМЛЕНИЯ ===
+                        item {
+                            SettingsHeader(title = "Тема оформления")
+                        }
 
-            // === АКЦЕНТНЫЙ ЦВЕТ ===
-            item {
-                SettingsHeader(title = "Акцентный цвет")
-            }
+                        item {
+                            SettingsCard {
+                                ThemeOption(
+                                    text = "Как в системе",
+                                    selected = currentThemeMode == ThemeMode.SYSTEM,
+                                    onClick = { onChangeThemeMode(ThemeMode.SYSTEM) }
+                                )
+                                ThemeOption(
+                                    text = "Светлая",
+                                    selected = currentThemeMode == ThemeMode.LIGHT,
+                                    onClick = { onChangeThemeMode(ThemeMode.LIGHT) }
+                                )
+                                ThemeOption(
+                                    text = "Тёмная",
+                                    selected = currentThemeMode == ThemeMode.DARK,
+                                    onClick = { onChangeThemeMode(ThemeMode.DARK) }
+                                )
+                            }
+                        }
 
-            item {
-                SettingsCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        ThemeSelectorItem(
-                            color = accentOrange,
-                            name = "Оранжевый",
-                            isSelected = currentAccent == accentOrange,
-                            onClick = { onChangeAccent(accentOrange) }
-                        )
-                        ThemeSelectorItem(
-                            color = accentBlue,
-                            name = "Синий",
-                            isSelected = currentAccent == accentBlue,
-                            onClick = { onChangeAccent(accentBlue) }
-                        )
-                        ThemeSelectorItem(
-                            color = accentGreen,
-                            name = "Зелёный",
-                            isSelected = currentAccent == accentGreen,
-                            onClick = { onChangeAccent(accentGreen) }
-                        )
-                        ThemeSelectorItem(
-                            color = accentRed,
-                            name = "Красный",
-                            isSelected = currentAccent == accentRed,
-                            onClick = { onChangeAccent(accentRed) }
-                        )
-                        ThemeSelectorItem(
-                            color = accentYellow,
-                            name = "Жёлтый",
-                            isSelected = currentAccent == accentYellow,
-                            onClick = { onChangeAccent(accentYellow) }
-                        )
-                        ThemeSelectorItem(
-                            color = accentCyan,
-                            name = "Циан",
-                            isSelected = currentAccent == accentCyan,
-                            onClick = { onChangeAccent(accentCyan) }
-                        )
-                        ThemeSelectorItem(
-                            color = accentMagenta,
-                            name = "Фиолетовый",
-                            isSelected = currentAccent == accentMagenta,
-                            onClick = { onChangeAccent(accentMagenta) }
-                        )
+                        // === АКЦЕНТНЫЙ ЦВЕТ ===
+                        item {
+                            SettingsHeader(title = "Акцентный цвет")
+                        }
+
+                        item {
+                            SettingsCard {
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    ThemeSelectorItem(
+                                        color = accentOrange,
+                                        name = "Оранжевый",
+                                        isSelected = currentAccent == accentOrange,
+                                        onClick = { onChangeAccent(accentOrange) }
+                                    )
+                                    ThemeSelectorItem(
+                                        color = accentBlue,
+                                        name = "Синий",
+                                        isSelected = currentAccent == accentBlue,
+                                        onClick = { onChangeAccent(accentBlue) }
+                                    )
+                                    ThemeSelectorItem(
+                                        color = accentGreen,
+                                        name = "Зелёный",
+                                        isSelected = currentAccent == accentGreen,
+                                        onClick = { onChangeAccent(accentGreen) }
+                                    )
+                                    ThemeSelectorItem(
+                                        color = accentRed,
+                                        name = "Красный",
+                                        isSelected = currentAccent == accentRed,
+                                        onClick = { onChangeAccent(accentRed) }
+                                    )
+                                    ThemeSelectorItem(
+                                        color = accentYellow,
+                                        name = "Жёлтый",
+                                        isSelected = currentAccent == accentYellow,
+                                        onClick = { onChangeAccent(accentYellow) }
+                                    )
+                                    ThemeSelectorItem(
+                                        color = accentCyan,
+                                        name = "Циан",
+                                        isSelected = currentAccent == accentCyan,
+                                        onClick = { onChangeAccent(accentCyan) }
+                                    )
+                                    ThemeSelectorItem(
+                                        color = accentMagenta,
+                                        name = "Фиолетовый",
+                                        isSelected = currentAccent == accentMagenta,
+                                        onClick = { onChangeAccent(accentMagenta) }
+                                    )
+                                }
+                            }
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
                 }
             }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
         }
-    }
+    )
 }
 
 @Composable

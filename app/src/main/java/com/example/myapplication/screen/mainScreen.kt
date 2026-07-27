@@ -34,17 +34,21 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.myapplication.bottomNavigation.BottomItem
 import com.example.myapplication.screen.Chat.ChatScreen
+import com.example.myapplication.screen.Chat.Message.ChatInfoScreen
 import com.example.myapplication.screen.Chat.Message.MessageScreen
 import com.example.myapplication.screen.Contacts.ContactsScreen
+import com.example.myapplication.screen.Dashboard.DashboardScreen
 import com.example.myapplication.screen.Profile.ProfileScreen
 import com.example.myapplication.screen.Login.signIn.SignInScreen
 import com.example.myapplication.screen.Login.signUp.SignUpScreen
 import com.example.myapplication.screen.Profile.AppInfoScreen
+import com.example.myapplication.screen.Profile.NotificationsScreen
+import com.example.myapplication.screen.Profile.PersonalInfoScreen
+import com.example.myapplication.screen.Profile.TasksScreen
 import com.example.myapplication.screen.Settings.SecurityScreen
 import com.example.myapplication.screen.Settings.SettingsScreen
 import com.example.myapplication.ui.theme.ThemeMode
 import com.google.firebase.auth.FirebaseAuth
-
 @Composable
 fun MainScreen(
     currentAccent: Color,
@@ -64,23 +68,53 @@ fun MainScreen(
         composable(route = "signup") {
             SignUpScreen(navController)
         }
+
         composable(route = "app") {
-            // Передаем ВСЕ необходимые параметры в AppScreen
             AppScreen(
-                rootNavController = navController,
+                navController = navController,
                 currentAccent = currentAccent,
                 currentThemeMode = currentThemeMode,
                 onChangeAccent = onChangeAccent,
                 onChangeThemeMode = onChangeThemeMode
             )
         }
-        composable(route = "chat/{channelId}", arguments = listOf(
-            navArgument("channelId") {
-                type = NavType.StringType
-            }
-        )) {
-            val channelId = it.arguments?.getString("channelId") ?: ""
-            MessageScreen(navController, channelId)
+
+        composable("chat/{chatId}") { backStackEntry ->
+            val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+            MessageScreen(navController, chatId)
+        }
+        composable("chat_info/{chatId}") { backStackEntry ->
+            val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+            ChatInfoScreen(navController, chatId)
+        }
+        composable(route = "settings") {
+            SettingsScreen(
+                navController = navController,
+                currentAccent = currentAccent,
+                currentThemeMode = currentThemeMode,
+                onChangeAccent = onChangeAccent,
+                onChangeThemeMode = onChangeThemeMode
+            )
+        }
+
+        composable(route = "security") {
+            SecurityScreen(navController)
+        }
+
+        composable(route = "appinfo") {
+            AppInfoScreen(navController)
+        }
+        composable("profile_info") {
+            PersonalInfoScreen(navController)
+        }
+        composable("dashboard") {
+            DashboardScreen()
+        }
+        composable("notifications") {
+            NotificationsScreen(navController)
+        }
+        composable("tasks") {
+            TasksScreen(navController)
         }
     }
 }
