@@ -1,14 +1,20 @@
 package com.example.myapplication.screen.Login.signIn
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.myapplication.R
 import com.example.myapplication.firm.FirmPasswordTextField
 import com.example.myapplication.firm.FirmSimpleTextField
 import com.example.myapplication.ui.components.LoadingIndicator
@@ -25,7 +31,12 @@ fun SignInScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
-
+    val c_bg = MaterialTheme.colorScheme.background
+    val c_bgtxt = MaterialTheme.colorScheme.onBackground
+    val c_surf = MaterialTheme.colorScheme.surface
+    val c_surftxt = MaterialTheme.colorScheme.onSurface
+    val c_acc = MaterialTheme.colorScheme.primary
+    val c_accmin = MaterialTheme.colorScheme.secondary
     // Редирект если уже залогинены
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
@@ -49,10 +60,21 @@ fun SignInScreen(
                 LoadingIndicator()
             } else {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(c_surf)
+                        .padding(top = 24.dp),
+
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Image(
+                        painterResource(R.drawable.mes_def_icon),
+                        contentDescription = "icon",
+                        modifier = Modifier
+                            .size(96.dp)
+                            .clip(RoundedCornerShape(32.dp))
+                    )
                     // Заголовок
                     Text(
                         text = "Вход в систему",
@@ -97,7 +119,7 @@ fun SignInScreen(
                             viewModel.login(email, password)
                         },
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(0.85f)
                             .height(56.dp),
                         enabled = email.isNotBlank() && password.isNotBlank()
                     ) {

@@ -6,10 +6,10 @@ data class ChatInfo(
     val isGroup: Boolean = false,
     val avatarUri: String = "",
     val createdBy: String = "",     // String для совместимости
-    val createdAt: Long = 0L,
+    val createdAt: String = "",
     val adminId: String? = null,
     val participants: List<ChatParticipant> = emptyList(),
     val lastMessage: String = "",
-    val lastMessageAt: Long = 0L,
+    val lastMessageAt: String = "",
     val messageCount: Int = 0
 )

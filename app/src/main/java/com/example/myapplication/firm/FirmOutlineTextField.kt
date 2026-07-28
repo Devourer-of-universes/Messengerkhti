@@ -185,8 +185,8 @@ fun FirmOutlineTextField(
             // Цвета для обычного состояния
             focusedTextColor = c_bgtxt,
             unfocusedTextColor = c_bgtxt,
-            focusedContainerColor = c_surf,
-            unfocusedContainerColor = c_surf,
+            focusedContainerColor = c_bg,
+            unfocusedContainerColor = c_bg,
             // Цвета для рамки
             focusedBorderColor = borderColor,
             unfocusedBorderColor = borderColor,
@@ -207,7 +207,7 @@ fun FirmOutlineTextField(
         ),
         modifier = Modifier
 
-            .clip(shape = RoundedCornerShape(16.dp))
+//            .clip(shape = RoundedCornerShape(16.dp))
             .padding(top = paddingTop, bottom = paddingBottom),
         label = {
             Text(
@@ -239,7 +239,7 @@ fun FirmOutlineTextField(
         ),
         leadingIcon = leadingIconContent,
         trailingIcon = passwordTrailingIcon,
-//        shape = MaterialTheme.shapes.small // Используем стандартную форму
+        shape = RoundedCornerShape(16.dp)// Используем стандартную форму
     )
 }
 

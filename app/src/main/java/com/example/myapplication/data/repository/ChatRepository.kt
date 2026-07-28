@@ -14,4 +14,8 @@ interface ChatRepository {
     suspend fun removeParticipant(chatId: String, userId: String): Result<Unit>
     suspend fun leaveChat(chatId: String, userId: String): Result<Unit>
     suspend fun updateChatInfo(chatId: String, updates: Map<String, Any>): Result<Unit>
+    fun getFolders(): Flow<List<ChatFolder>>
+    suspend fun createFolder(name: String): Result<ChatFolder>
+    suspend fun deleteFolder(folderId: Int): Result<Unit>
+    suspend fun moveChatToFolder(chatId: Int, folderId: Int?): Result<Unit>
 }

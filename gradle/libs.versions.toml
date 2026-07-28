@@ -35,6 +35,8 @@ animationCore = "1.11.4"
 foundationLayoutVersion = "1.11.4"
 foundationVersion = "1.11.4"
 ui = "1.11.4"
+composeMaterial3 = "1.6.2"
+generativeai = "0.9.0"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -78,6 +80,8 @@ androidx-compose-animation-core = { group = "androidx.compose.animation", name =
 androidx-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayoutVersion" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "composeMaterial3" }
+generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
 
 
 

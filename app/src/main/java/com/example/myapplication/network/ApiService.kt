@@ -71,6 +71,28 @@ interface ApiService {
         @Part file: MultipartBody.Part
     ): UploadResponse
 
+    // ========== ПАПКИ ==========
+    @GET("api/chats/folders")
+    suspend fun getFolders(): FoldersResponse
+
+    @POST("api/chats/folders")
+    suspend fun createFolder(@Body request: CreateFolderRequest): CreateFolderResponse
+
+    @DELETE("api/chats/folders/{folderId}")
+    suspend fun deleteFolder(@Path("folderId") folderId: Int): SimpleResponse
+
+    @POST("api/chats/folders/{folderId}/chats/{chatId}")
+    suspend fun moveChatToFolder(
+        @Path("folderId") folderId: Int,
+        @Path("chatId") chatId: Int
+    ): SimpleResponse
+
+    @DELETE("api/chats/folders/{folderId}/chats/{chatId}")
+    suspend fun removeChatFromFolder(
+        @Path("folderId") folderId: Int,
+        @Path("chatId") chatId: Int
+    ): SimpleResponse
+
     // ========== ЗАДАЧИ ==========
     @GET("api/tasks")
     suspend fun getTasks(
@@ -100,15 +122,27 @@ interface ApiService {
 data class UserResponse(val user: User)
 data class UsersResponse(val users: List<User>)
 data class ContactsResponse(val contacts: List<User>)
-data class ChatsResponse(val chats: List<Chat>)
-data class ChatResponse(val chat: Chat)
-data class MessagesResponse(val messages: List<ChatMessage>)
-data class TasksResponse(val tasks: List<Task>)
+
+// === ИСПРАВЛЕНО: ChatsResponse использует ApiChat ===
+data class ChatsResponse(val chats: List<ApiChat>)
+
+// === ИСПРАВЛЕНО: ChatResponse использует ApiChat ===
+data class ChatResponse(val chat: ApiChat)
+
+data class MessagesResponse(
+    val messages: List<ApiMessage>
+)data class TasksResponse(val tasks: List<Task>)
 data class TaskResponse(val task: Task)
 data class SimpleResponse(val success: Boolean)
 data class CreateChatResponse(val success: Boolean, val chatId: Int)
 data class SendMessageResponse(val success: Boolean, val message: ChatMessage)
 data class UploadResponse(val success: Boolean, val message: ChatMessage)
+
+// === ПАПКИ ===
+data class FoldersResponse(val folders: List<ChatFolder>)
+data class CreateFolderResponse(val success: Boolean, val folder: ChatFolder)
+data class CreateFolderRequest(val name: String)
+
 data class DashboardStatsResponse(
     val tasksInProgress: Int,
     val documentsTotal: Int,
@@ -148,4 +182,54 @@ data class UpdateTaskRequest(
     val status: String? = null,
     val progress: Int? = null,
     val dueDate: String? = null
+)
+
+// ========== МОДЕЛИ СЕРВЕРА ==========
+data class ApiChat(
+    val id: Int = 0,
+    val name: String = "",
+    val is_group: Boolean = false,
+    val avatar_uri: String? = null,
+    val created_by: Int = 0,
+    val created_at: String = "",  // ← String
+    val last_message_at: String = "",  // ← String
+    val unread_count: Int = 0,
+    val last_message: LastMessage? = null,
+    val folder_id: Int? = null
+)
+data class LastMessage(
+    val id: Int = 0,
+    val content: String = "",
+    val created_at: String = "",  // ← String
+    val user_id: Int = 0
+)
+data class ChatFolder(
+    val id: Int = 0,
+    val name: String = "",
+    val user_id: Int = 0,
+    val created_at: String = "",
+    val updated_at: String = ""
+)
+data class ApiMessage(
+    val id: Int = 0,
+    val chat_id: Int = 0,
+    val user_id: Int = 0,
+    val content: String = "",
+    val created_at: String = "",
+    val surname: String = "",
+    val name: String = "",
+    val avatar_uri: String? = null,
+    val is_edited: Boolean = false,
+    val is_deleted: Boolean = false
+)
+data class ChatInfo(
+    val id: String = "",
+    val name: String = "",
+    val is_group: Boolean = false,
+    val avatar_uri: String? = null,
+    val created_by: Int = 0,
+    val created_at: String = "",  // ← String
+    val last_message_at: String = "",  // ← String
+    val last_message: String? = null,
+    val folder_id: Int? = null
 )

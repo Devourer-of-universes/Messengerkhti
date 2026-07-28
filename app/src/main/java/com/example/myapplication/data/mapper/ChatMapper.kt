@@ -1,36 +1,25 @@
+// data/mapper/ChatMapper.kt
 package com.example.myapplication.data.mapper
 
 import com.example.myapplication.model.Chat
-import com.example.myapplication.model.ChatInfo
-import com.example.myapplication.model.ChatParticipant
-import com.example.myapplication.model.ChatMessage
+import com.example.myapplication.network.ApiChat
 
 object ChatMapper {
 
-    fun mapToChatInfo(
-        chat: Chat,
-        participants: List<ChatParticipant>,
-        messages: List<ChatMessage>
-    ): ChatInfo {
-        return ChatInfo(
-            id = chat.id.toString(), // Int -> String
-            name = chat.name,
-            isGroup = chat.isGroup,
-            avatarUri = chat.avatarUri,
-            createdBy = chat.createdBy.toString(), // Int -> String
-            createdAt = chat.createdAt,
-            participants = participants,
-            lastMessage = messages.firstOrNull()?.content ?: "",
-            lastMessageAt = messages.firstOrNull()?.createdAt?.toLongOrNull() ?: 0L,
-            messageCount = messages.size
+    fun mapToChat(apiChat: ApiChat): Chat {
+        return Chat(
+            id = apiChat.id,
+            name = apiChat.name,
+            isGroup = apiChat.is_group,
+            avatarUri = apiChat.avatar_uri,
+            createdBy = apiChat.created_by,
+            createdAt = apiChat.created_at,
+            lastMessageAt = apiChat.last_message_at,
+            unreadCount = apiChat.unread_count,
+            participants = emptyList(),
+            lastMessage = apiChat.last_message?.content ?: "",
+            lastMessageUserId = apiChat.last_message?.user_id ?: 0,
+            folderId = apiChat.folder_id
         )
-    }
-
-    fun getChatType(chat: Chat): String {
-        return if (chat.isGroup) "Групповой" else "Личный"
-    }
-
-    fun getParticipantCount(chat: Chat): Int {
-        return chat.participants.size
     }
 }

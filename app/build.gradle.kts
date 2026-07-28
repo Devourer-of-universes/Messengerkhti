@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
     implementation(libs.androidx.runtime)
+    implementation(libs.compose.material3)
 
     implementation(libs.dagger.hilt.android)
     implementation(libs.firebase.crashlytics.buildtools)
@@ -77,6 +78,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.generativeai)
     kapt(libs.dagger.hilt.compiler)
     implementation(libs.dagger.hilt.compose)
     implementation(libs.coil)

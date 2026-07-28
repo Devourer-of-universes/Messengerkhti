@@ -1,9 +1,12 @@
+// screen/Chat/ChatViewModel.kt
 package com.example.myapplication.screen.Chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.ChatRepository
 import com.example.myapplication.model.Chat
+import com.example.myapplication.model.ChatFolder
+import com.example.myapplication.utils.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +22,9 @@ class ChatViewModel @Inject constructor(
     private val _chats = MutableStateFlow<List<Chat>>(emptyList())
     val chats: StateFlow<List<Chat>> = _chats.asStateFlow()
 
+    private val _folders = MutableStateFlow<List<ChatFolder>>(emptyList())
+    val folders: StateFlow<List<ChatFolder>> = _folders.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -33,6 +39,47 @@ class ChatViewModel @Inject constructor(
             chatRepository.getChats(userId).collect { chatList ->
                 _chats.value = chatList
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun loadFolders() {
+        viewModelScope.launch {
+            chatRepository.getFolders().collect { folderList ->
+                _folders.value = folderList
+            }
+        }
+    }
+
+    fun createFolder(name: String) {
+        viewModelScope.launch {
+            try {
+                chatRepository.createFolder(name)
+                loadFolders()
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun deleteFolder(folderId: Int) {
+        viewModelScope.launch {
+            try {
+                chatRepository.deleteFolder(folderId)
+                loadFolders()
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun moveChatToFolder(chatId: Int, folderId: Int?) {
+        viewModelScope.launch {
+            try {
+                chatRepository.moveChatToFolder(chatId, folderId)
+                loadChats(TokenManager.getUserId().toString())
+            } catch (e: Exception) {
+                _error.value = e.message
             }
         }
     }

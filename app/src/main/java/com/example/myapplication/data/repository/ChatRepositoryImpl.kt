@@ -1,8 +1,10 @@
+// data/repository/ChatRepositoryImpl.kt
 package com.example.myapplication.data.repository
 
 import com.example.myapplication.model.*
 import com.example.myapplication.network.ApiService
 import com.example.myapplication.network.CreateChatRequest
+import com.example.myapplication.network.CreateFolderRequest
 import com.example.myapplication.network.SendMessageRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -14,11 +16,44 @@ class ChatRepositoryImpl @Inject constructor(
     private val apiService: ApiService
 ) : ChatRepository {
 
+    // data/repository/ChatRepositoryImpl.kt
     override fun getChats(userId: String): Flow<List<Chat>> = flow {
         try {
             val response = apiService.getChats()
-            emit(response.chats)
+
+            val chats = response.chats.map { apiChat ->
+                val chatName = if (apiChat.is_group) {
+                    apiChat.name
+                } else {
+                    apiChat.name.ifEmpty { "Пользователь" }
+                }
+
+                val lastMessageText = apiChat.last_message?.content ?: ""
+
+                Chat(
+                    id = apiChat.id,
+                    name = chatName,
+                    isGroup = apiChat.is_group,
+                    avatarUri = apiChat.avatar_uri ?: "",
+                    createdBy = apiChat.created_by,
+                    createdAt = apiChat.created_at,  // ← уже String
+                    lastMessageAt = apiChat.last_message_at,  // ← уже String
+                    unreadCount = apiChat.unread_count,
+                    participants = emptyList(),
+                    lastMessage = lastMessageText,
+                    lastMessageUserId = apiChat.last_message?.user_id ?: 0,
+                    folderId = apiChat.folder_id
+                )
+            }
+
+            android.util.Log.d("ChatDebug", "Loaded ${chats.size} chats")
+            chats.forEach { chat ->
+                android.util.Log.d("ChatDebug", "Chat: ${chat.name}, lastMessage: ${chat.lastMessage}")
+            }
+
+            emit(chats)
         } catch (e: Exception) {
+            android.util.Log.e("ChatDebug", "Error loading chats: ${e.message}")
             emit(emptyList())
         }
     }
@@ -26,31 +61,24 @@ class ChatRepositoryImpl @Inject constructor(
     override fun getChatInfo(chatId: String): Flow<ChatInfo?> = flow {
         try {
             val response = apiService.getChat(chatId.toInt())
-            val chat = response.chat
+            val apiChat = response.chat
+
             emit(
                 ChatInfo(
-                    id = chat.id.toString(),
-                    name = chat.name,
-                    isGroup = chat.isGroup,
-                    avatarUri = chat.avatarUri,
-                    createdBy = chat.createdBy.toString(),
-                    createdAt = chat.createdAt,
-                    participants = chat.participants.map { participant ->
-                        ChatParticipant(
-                            id = participant.id,
-                            surname = participant.surname,
-                            name = participant.name,
-                            avatarUri = participant.avatarUri,
-                            isOnline = participant.isOnline,
-                            lastSeenAt = participant.lastSeenAt
-                        )
-                    },
-                    lastMessage = chat.lastMessage?.content ?: "",
-                    lastMessageAt = chat.lastMessageAt,
+                    id = apiChat.id.toString(),
+                    name = apiChat.name,
+                    isGroup = apiChat.is_group,
+                    avatarUri = apiChat.avatar_uri ?: "",
+                    createdBy = apiChat.created_by.toString(),
+                    createdAt = apiChat.created_at,  // ← уже String
+                    participants = emptyList(),
+                    lastMessage = apiChat.last_message?.content ?: "",
+                    lastMessageAt = apiChat.last_message_at,  // ← уже String
                     messageCount = 0
                 )
             )
         } catch (e: Exception) {
+            android.util.Log.e("ChatDebug", "Error loading chat info: ${e.message}")
             emit(null)
         }
     }
@@ -58,8 +86,23 @@ class ChatRepositoryImpl @Inject constructor(
     override fun getMessages(chatId: String): Flow<List<ChatMessage>> = flow {
         try {
             val response = apiService.getMessages(chatId.toInt())
-            emit(response.messages)
+            val messages = response.messages.map { apiMessage ->
+                ChatMessage(
+                    id = apiMessage.id,
+                    chatId = apiMessage.chat_id,
+                    userId = apiMessage.user_id,
+                    content = apiMessage.content,
+                    createdAt = apiMessage.created_at,
+                    surname = apiMessage.surname,
+                    name = apiMessage.name,
+                    avatarUri = apiMessage.avatar_uri ?: "",
+                    isEdited = apiMessage.is_edited,
+                    isDeleted = apiMessage.is_deleted
+                )
+            }
+            emit(messages)
         } catch (e: Exception) {
+            android.util.Log.e("ChatDebug", "Error loading messages: ${e.message}")
             emit(emptyList())
         }
     }
@@ -67,8 +110,8 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun createChat(chat: Chat): Result<Chat> {
         return try {
             val request = CreateChatRequest(
-                userIds = chat.participants.map { it.id.toInt() },
-                name = chat.name.takeIf { it.isNotEmpty() },
+                userIds = emptyList(),
+                name = chat.name,
                 isGroup = chat.isGroup
             )
             val response = apiService.createChat(request)
@@ -136,6 +179,77 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun updateChatInfo(chatId: String, updates: Map<String, Any>): Result<Unit> {
         return try {
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ========== ПАПКИ ==========
+
+    override fun getFolders(): Flow<List<ChatFolder>> = flow {
+        try {
+            val response = apiService.getFolders()
+            // Маппим network.ChatFolder в model.ChatFolder
+            val folders = response.folders.map { apiFolder ->
+                ChatFolder(
+                    id = apiFolder.id,
+                    name = apiFolder.name,
+                    userId = apiFolder.user_id,
+                    createdAt = apiFolder.created_at,
+                    updatedAt = apiFolder.updated_at
+                )
+            }
+            emit(folders)
+        } catch (e: Exception) {
+            emit(emptyList())
+        }
+    }
+
+    override suspend fun createFolder(name: String): Result<ChatFolder> {
+        return try {
+            val response = apiService.createFolder(CreateFolderRequest(name))
+            if (response.success) {
+                val folder = ChatFolder(
+                    id = response.folder.id,
+                    name = response.folder.name,
+                    userId = response.folder.user_id,
+                    createdAt = response.folder.created_at,
+                    updatedAt = response.folder.updated_at
+                )
+                Result.success(folder)
+            } else {
+                Result.failure(Exception("Failed to create folder"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteFolder(folderId: Int): Result<Unit> {
+        return try {
+            val response = apiService.deleteFolder(folderId)
+            if (response.success) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to delete folder"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun moveChatToFolder(chatId: Int, folderId: Int?): Result<Unit> {
+        return try {
+            if (folderId != null) {
+                val response = apiService.moveChatToFolder(folderId, chatId)
+                if (response.success) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Failed to move chat"))
+                }
+            } else {
+                Result.success(Unit)
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
