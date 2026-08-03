@@ -54,41 +54,35 @@ fun AppScreen(
     onChangeAccent: (Color) -> Unit,
     onChangeThemeMode: (ThemeMode) -> Unit,
 ) {
-    var selectedIndexed by rememberSaveable {
-        mutableIntStateOf(1)
-    }
+    var selectedIndexed by rememberSaveable { mutableIntStateOf(1) }
 
-    // Слушаем возврат из настроек
-    LaunchedEffect(navController.currentBackStackEntry) {
-        val savedTab = navController.currentBackStackEntry?.savedStateHandle?.get<Int>("selectedTab")
-        if (savedTab != null) {
-            selectedIndexed = savedTab
-            navController.currentBackStackEntry?.savedStateHandle?.remove<Int>("selectedTab")
-        }
-    }
+    val colors = MaterialTheme.colorScheme
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
+            // Ваш BottomBar
             NavBottomBar(
                 selectedIndex = selectedIndexed,
                 onItemSelected = { index ->
                     selectedIndexed = index
                 }
             )
-        },
-        content = { innerPadding: PaddingValues ->
-            ContentScreen(
-                modifier = Modifier.padding(innerPadding),
-                selectedIndexed = selectedIndexed,
-                navController = navController as NavHostController,
-                onNavigateToSettings = { route ->
-                    navController.currentBackStackEntry?.savedStateHandle?.set("selectedTab", selectedIndexed)
-                    navController.navigate(route)
-                }
-            )
         }
-    )
+    ) { paddingValues ->
+        // ⚠️ ВАЖНО: paddingValues содержит отступы от системных элементов
+        // и от bottomBar. Их нужно передать в контент!
+        ContentScreen(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues), // ← КЛЮЧЕВОЙ МОМЕНТ!
+            selectedIndexed = selectedIndexed,
+            navController = navController as NavHostController,
+            onNavigateToSettings = { route ->
+                navController.navigate(route)
+            }
+        )
+    }
 }
 
 @Composable
@@ -96,20 +90,28 @@ fun ContentScreen(
     modifier: Modifier = Modifier,
     selectedIndexed: Int,
     navController: NavHostController,
-    onNavigateToSettings: (String) -> Unit  // Добавляем параметр
+    onNavigateToSettings: (String) -> Unit
 ) {
-    val c_bg = MaterialTheme.colorScheme.background
+    val colors = MaterialTheme.colorScheme
+
     Box(
-        modifier = Modifier
-            .background(c_bg)
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.background)
+
     ) {
         when (selectedIndexed) {
-            0 -> ContactsScreen(navController, modifier = modifier, )
-            1 -> ChatScreen(navController, modifier = modifier, )
+            0 -> ContactsScreen(
+                modifier = Modifier.fillMaxSize(),
+                navController = navController
+            )
+            1 -> ChatScreen(
+                modifier = Modifier.fillMaxSize(),
+                navController = navController
+            )
             2 -> ProfileScreen(
-                modifier = modifier,
-                navController = navController,
-//                onNavigateToSettings = onNavigateToSettings  // Передаем функцию
+                modifier = Modifier.fillMaxSize(),
+                navController = navController
             )
         }
     }

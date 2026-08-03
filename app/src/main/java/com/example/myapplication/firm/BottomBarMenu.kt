@@ -47,6 +47,7 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.bottomNavigation.BottomItem
+import com.example.myapplication.ui.theme.txtMainGreyLight
 import com.example.myapplication.ui.theme.txtMainWhite
 
 @Composable
@@ -157,14 +158,14 @@ fun NavBottomBar(
                             Icon(
                                 imageVector = navItem.iconId,
                                 contentDescription = navItem.title,
-                                tint = if (isSelected) txtMainWhite else c_bgtxt.copy(alpha = 0.6f),
+                                tint = if (isSelected) txtMainWhite else txtMainGreyLight,
                                 modifier = Modifier.size(26.dp)
                             )
                         }
 
                         Text(
                             text = navItem.title,
-                            color = if (isSelected) txtMainWhite else c_bgtxt.copy(alpha = 0.6f),
+                            color = if (isSelected) txtMainWhite else txtMainGreyLight,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(top = 2.dp)
                         )

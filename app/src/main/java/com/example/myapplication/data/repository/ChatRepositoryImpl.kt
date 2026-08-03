@@ -23,9 +23,9 @@ class ChatRepositoryImpl @Inject constructor(
 
             val chats = response.chats.map { apiChat ->
                 val chatName = if (apiChat.is_group) {
-                    apiChat.name
+                    apiChat.name ?: "Группа"  // ← Если null, ставим "Группа"
                 } else {
-                    apiChat.name.ifEmpty { "Пользователь" }
+                    apiChat.name ?: "Пользователь"  // ← Если null, ставим "Пользователь"
                 }
 
                 val lastMessageText = apiChat.last_message?.content ?: ""
@@ -36,19 +36,14 @@ class ChatRepositoryImpl @Inject constructor(
                     isGroup = apiChat.is_group,
                     avatarUri = apiChat.avatar_uri ?: "",
                     createdBy = apiChat.created_by,
-                    createdAt = apiChat.created_at,  // ← уже String
-                    lastMessageAt = apiChat.last_message_at,  // ← уже String
+                    createdAt = apiChat.created_at,
+                    lastMessageAt = apiChat.last_message_at,
                     unreadCount = apiChat.unread_count,
                     participants = emptyList(),
                     lastMessage = lastMessageText,
                     lastMessageUserId = apiChat.last_message?.user_id ?: 0,
                     folderId = apiChat.folder_id
                 )
-            }
-
-            android.util.Log.d("ChatDebug", "Loaded ${chats.size} chats")
-            chats.forEach { chat ->
-                android.util.Log.d("ChatDebug", "Chat: ${chat.name}, lastMessage: ${chat.lastMessage}")
             }
 
             emit(chats)
@@ -66,14 +61,14 @@ class ChatRepositoryImpl @Inject constructor(
             emit(
                 ChatInfo(
                     id = apiChat.id.toString(),
-                    name = apiChat.name,
+                    name = apiChat.name ?: "Чат",  // ← Если null, ставим "Чат"
                     isGroup = apiChat.is_group,
                     avatarUri = apiChat.avatar_uri ?: "",
                     createdBy = apiChat.created_by.toString(),
-                    createdAt = apiChat.created_at,  // ← уже String
+                    createdAt = apiChat.created_at,
                     participants = emptyList(),
-                    lastMessage = apiChat.last_message?.content ?: "",
-                    lastMessageAt = apiChat.last_message_at,  // ← уже String
+                    lastMessage = "",
+                    lastMessageAt = apiChat.last_message_at,
                     messageCount = 0
                 )
             )
@@ -97,12 +92,13 @@ class ChatRepositoryImpl @Inject constructor(
                     name = apiMessage.name,
                     avatarUri = apiMessage.avatar_uri ?: "",
                     isEdited = apiMessage.is_edited,
-                    isDeleted = apiMessage.is_deleted
+                    isDeleted = apiMessage.is_deleted,
+                    readers = emptyList() // Временно, пока нет поля в БД
                 )
             }
             emit(messages)
         } catch (e: Exception) {
-            android.util.Log.e("ChatDebug", "Error loading messages: ${e.message}")
+            android.util.Log.e("MessageDebug", "Error loading messages: ${e.message}")
             emit(emptyList())
         }
     }

@@ -3,7 +3,7 @@ package com.example.myapplication.model
 // model/Chat.kt
 data class Chat(
     val id: Int = 0,
-    val name: String = "",
+    val name: String? = "",
     val isGroup: Boolean = false,
     val avatarUri: String? = "",
     val createdBy: Int = 0,

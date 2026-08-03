@@ -70,7 +70,15 @@ interface ApiService {
         @Path("chatId") chatId: Int,
         @Part file: MultipartBody.Part
     ): UploadResponse
+    @POST("api/messages/{messageId}/read")
+    suspend fun markMessageAsRead(
+        @Path("messageId") messageId: Int
+    ): SimpleResponse
 
+    @GET("api/messages/{messageId}/reads")
+    suspend fun getMessageReads(
+        @Path("messageId") messageId: Int
+    ): MessageReadsResponse
     // ========== ПАПКИ ==========
     @GET("api/chats/folders")
     suspend fun getFolders(): FoldersResponse
@@ -137,7 +145,9 @@ data class SimpleResponse(val success: Boolean)
 data class CreateChatResponse(val success: Boolean, val chatId: Int)
 data class SendMessageResponse(val success: Boolean, val message: ChatMessage)
 data class UploadResponse(val success: Boolean, val message: ChatMessage)
-
+data class MessageReadsResponse(
+    val reads: List<ReadReceipt>
+)
 // === ПАПКИ ===
 data class FoldersResponse(val folders: List<ChatFolder>)
 data class CreateFolderResponse(val success: Boolean, val folder: ChatFolder)
@@ -187,12 +197,12 @@ data class UpdateTaskRequest(
 // ========== МОДЕЛИ СЕРВЕРА ==========
 data class ApiChat(
     val id: Int = 0,
-    val name: String = "",
+    val name: String? = null,  // ← Может быть null
     val is_group: Boolean = false,
     val avatar_uri: String? = null,
     val created_by: Int = 0,
-    val created_at: String = "",  // ← String
-    val last_message_at: String = "",  // ← String
+    val created_at: String = "",
+    val last_message_at: String = "",
     val unread_count: Int = 0,
     val last_message: LastMessage? = null,
     val folder_id: Int? = null
@@ -220,7 +230,13 @@ data class ApiMessage(
     val name: String = "",
     val avatar_uri: String? = null,
     val is_edited: Boolean = false,
-    val is_deleted: Boolean = false
+    val is_deleted: Boolean = false,
+    val readers: List<ReadReceipt>? = null  // Может быть null
+)
+
+data class ReadReceipt(
+    val user_id: Int,
+    val read_at: String
 )
 data class ChatInfo(
     val id: String = "",

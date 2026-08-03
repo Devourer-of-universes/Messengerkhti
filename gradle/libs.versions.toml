@@ -37,6 +37,7 @@ foundationVersion = "1.11.4"
 ui = "1.11.4"
 composeMaterial3 = "1.6.2"
 generativeai = "0.9.0"
+uiGraphics = "1.11.4"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -82,6 +83,7 @@ androidx-foundation = { group = "androidx.compose.foundation", name = "foundatio
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "composeMaterial3" }
 generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
 
 
 

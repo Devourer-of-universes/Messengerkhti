@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.ChatRepository
 import com.example.myapplication.model.Chat
 import com.example.myapplication.model.ChatFolder
+import com.example.myapplication.model.ChatParticipant
 import com.example.myapplication.utils.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +43,23 @@ class ChatViewModel @Inject constructor(
             }
         }
     }
-
+    fun createChat(name: String, userIds: List<Int>) {
+        viewModelScope.launch {
+            try {
+                val chat = Chat(
+                    name = name,
+                    isGroup = userIds.size > 1,
+                    participants = userIds.map {
+                        ChatParticipant(id = it)
+                    }
+                )
+                chatRepository.createChat(chat)
+                loadChats(TokenManager.getUserId().toString())
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
     fun loadFolders() {
         viewModelScope.launch {
             chatRepository.getFolders().collect { folderList ->
