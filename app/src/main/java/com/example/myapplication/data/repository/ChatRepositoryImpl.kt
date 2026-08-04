@@ -1,13 +1,19 @@
 // data/repository/ChatRepositoryImpl.kt
 package com.example.myapplication.data.repository
 
+import android.util.Log
 import com.example.myapplication.model.*
 import com.example.myapplication.network.ApiService
 import com.example.myapplication.network.CreateChatRequest
 import com.example.myapplication.network.CreateFolderRequest
+import com.example.myapplication.network.MediaResponse
 import com.example.myapplication.network.SendMessageRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -58,16 +64,28 @@ class ChatRepositoryImpl @Inject constructor(
             val response = apiService.getChat(chatId.toInt())
             val apiChat = response.chat
 
+            // Преобразуем участников
+            val participants = apiChat.participants?.map { participant ->
+                ChatParticipant(
+                    id = participant.id,
+                    surname = participant.surname ?: "",
+                    name = participant.name ?: "",
+                    avatarUri = participant.avatar_uri ?: "",
+                    isOnline = participant.is_online ?: false,
+                    lastSeenAt = 0L
+                )
+            } ?: emptyList()
+
             emit(
                 ChatInfo(
                     id = apiChat.id.toString(),
-                    name = apiChat.name ?: "Чат",  // ← Если null, ставим "Чат"
+                    name = apiChat.name ?: "",  // Может быть null
                     isGroup = apiChat.is_group,
                     avatarUri = apiChat.avatar_uri ?: "",
                     createdBy = apiChat.created_by.toString(),
                     createdAt = apiChat.created_at,
-                    participants = emptyList(),
-                    lastMessage = "",
+                    participants = participants,
+                    lastMessage = apiChat.last_message?.content ?: "",
                     lastMessageAt = apiChat.last_message_at,
                     messageCount = 0
                 )
@@ -248,6 +266,53 @@ class ChatRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+    override suspend fun uploadFile(chatId: Int, file: File): Flow<Result<ChatMessage>> = flow {
+        try {
+            val requestBody = file.asRequestBody("application/octet-stream".toMediaTypeOrNull())
+            val part = MultipartBody.Part.createFormData("file", file.name, requestBody)
+            val response = apiService.uploadFile(chatId, part)
+            if (response.success) {
+                emit(Result.success(response.message))
+            } else {
+                emit(Result.failure(Exception("Failed to upload file")))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+    override suspend fun getChatMedia(chatId: Int): com.example.myapplication.model.MediaResponse {
+        return try {
+            val response = apiService.getChatMedia(chatId) // Это NetworkMediaResponse
+
+            // Преобразуем из network в model
+            com.example.myapplication.model.MediaResponse(
+                files = response.files.map { file ->
+                    com.example.myapplication.model.MediaFile(
+                        id = file.id,
+                        name = file.name,
+                        url = file.url,
+                        size = file.size,
+                        type = file.type,
+                        created_at = file.created_at
+                    )
+                },
+                images = response.images.map { file ->
+                    com.example.myapplication.model.MediaFile(
+                        id = file.id,
+                        name = file.name,
+                        url = file.url,
+                        size = file.size,
+                        type = file.type,
+                        created_at = file.created_at
+                    )
+                }
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("ChatRepository", "Error loading media: ${e.message}")
+            com.example.myapplication.model.MediaResponse(emptyList(), emptyList())
         }
     }
 }

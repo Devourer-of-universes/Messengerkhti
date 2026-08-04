@@ -1,6 +1,10 @@
 package com.example.myapplication.screen.Chat.Message
 
+import com.example.myapplication.R
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,7 +40,18 @@ import com.example.myapplication.utils.TokenManager
 import com.example.myapplication.ui.theme.txtMainWhite
 import java.text.SimpleDateFormat
 import java.util.*
-
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.Image
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.InsertDriveFile
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
+import com.android.volley.toolbox.ImageRequest
+import com.google.android.engage.common.datamodel.Image
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +66,15 @@ fun MessageScreen(
     val chatName by viewModel.chatName.collectAsState()
     val chatAvatar by viewModel.chatAvatar.collectAsState()
 
+    // File picker для Android
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            viewModel.uploadFile(chatId, it)
+        }
+    }
+
     LaunchedEffect(chatId) {
         viewModel.loadMessages(chatId)
         viewModel.loadChatInfo(chatId)
@@ -64,6 +88,11 @@ fun MessageScreen(
             TopAppBar(
                 title = {
                     Row(
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate("chat_info/$chatId")
+                            }
+                            .padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -97,17 +126,6 @@ fun MessageScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = {
-                        navController.navigate("chat_info/$chatId")
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = "Информация",
-                            tint = colors.onSurface
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colors.surface,
                     scrolledContainerColor = colors.surface
@@ -118,6 +136,9 @@ fun MessageScreen(
             MessageInput(
                 onSendMessage = { content ->
                     viewModel.sendMessage(chatId, content)
+                },
+                onAttachFile = {
+                    launcher.launch("*/*")
                 }
             )
         }
@@ -238,7 +259,18 @@ fun MessageItem(
     showAvatar: Boolean
 ) {
     val colors = MaterialTheme.colorScheme
-    val currentUserId = TokenManager.getUserId()
+
+    // Определяем тип контента
+    val isImage = message.content.contains("📷") ||
+            (message.content.startsWith("/uploads/") &&
+                    (message.content.endsWith(".jpg") ||
+                            message.content.endsWith(".png") ||
+                            message.content.endsWith(".jpeg") ||
+                            message.content.endsWith(".gif") ||
+                            message.content.endsWith(".webp")))
+
+    val isFile = message.content.contains("📎") ||
+            (!isImage && message.content.startsWith("/uploads/"))
 
     Row(
         modifier = Modifier
@@ -246,13 +278,12 @@ fun MessageItem(
             .padding(vertical = 2.dp),
         horizontalArrangement = if (isOwn) Arrangement.End else Arrangement.Start
     ) {
-        // Блок сообщения
         Column(
             modifier = Modifier
+                .wrapContentWidth()
                 .widthIn(max = 280.dp)
 
         ) {
-            // Имя отправителя (для чужих)
             if (!isOwn) {
                 Text(
                     text = "${message.surname} ${message.name}".trim(),
@@ -263,12 +294,10 @@ fun MessageItem(
                 )
             }
 
-            // Сообщение с аватаром внутри
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = if (isOwn) Arrangement.End else Arrangement.Start
             ) {
-                // Аватар внутри блока (для чужих) - слева
                 if (showAvatar) {
                     Box(
                         modifier = Modifier
@@ -288,7 +317,6 @@ fun MessageItem(
                     Spacer(modifier = Modifier.width(6.dp))
                 }
 
-                // Текст сообщения
                 Surface(
                     shape = RoundedCornerShape(
                         topStart = if (isOwn) 16.dp else 4.dp,
@@ -297,7 +325,8 @@ fun MessageItem(
                         bottomEnd = if (isOwn) 12.dp else 16.dp
                     ),
                     color = if (isOwn) colors.primary else colors.surfaceVariant,
-                    shadowElevation = 1.dp
+                    shadowElevation = 1.dp,
+                    modifier = Modifier.wrapContentWidth()
                 ) {
                     Column(
                         modifier = Modifier.padding(
@@ -305,17 +334,109 @@ fun MessageItem(
                             vertical = 8.dp
                         )
                     ) {
-                        Text(
-                            text = message.content,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (isOwn) colors.onPrimary else colors.onSurface,
-                            fontSize = 15.sp,
-                            lineHeight = 20.sp
-                        )
+                        when {
+                            isImage -> {
+                                // Извлекаем URL изображения
+                                val lines = message.content.split("\n")
+                                val imageUrl = lines.lastOrNull()?.trim() ?: ""
+                                val baseUrl = "http://10.0.2.2:3000" // Базовый URL сервера
+                                val fullImageUrl = if (imageUrl.startsWith("/uploads/")) {
+                                    baseUrl + imageUrl
+                                } else {
+                                    imageUrl
+                                }
 
+                                Column {
+                                    // Изображение через Coil
+                                    Box(
+                                        modifier = Modifier
+                                            .width(200.dp)
+                                            .height(150.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(colors.surfaceVariant)
+                                            .clickable {
+                                                // TODO: Открыть полноэкранный просмотр
+                                            }
+                                    ) {
+                                        AsyncImage(
+                                            model = fullImageUrl,
+                                            contentDescription = "Изображение",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                            error = painterResource(R.drawable.account_lock) // можно добавить свою заглушку
+                                        )
+
+                                        // Индикатор, что это изображение
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.BottomStart)
+                                                .padding(4.dp)
+                                                .background(Color.Black.copy(alpha = 0.5f))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = "🖼️",
+                                                fontSize = 12.sp,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+
+                                    // Если есть подпись к изображению (текст до \n)
+                                    if (lines.size > 2) {
+                                        Text(
+                                            text = lines.dropLast(1).joinToString("\n"),
+                                            fontSize = 14.sp,
+                                            color = if (isOwn) colors.onPrimary else colors.onSurface,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            isFile -> {
+                                // Файл
+                                val lines = message.content.split("\n")
+                                val fileName = lines.firstOrNull()?.replace("📎 ", "") ?: "Файл"
+                                Row(
+                                    modifier = Modifier
+                                        .clickable {
+                                            // TODO: Скачать файл
+                                        }
+                                        .padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.InsertDriveFile,
+                                        contentDescription = null,
+                                        tint = if (isOwn) colors.onPrimary else colors.onSurfaceVariant,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = fileName,
+                                        color = if (isOwn) colors.onPrimary else colors.onSurface,
+                                        fontSize = 14.sp,
+                                        maxLines = 2
+                                    )
+                                }
+                            }
+                            else -> {
+                                // Обычный текст
+                                Text(
+                                    text = message.content,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (isOwn) colors.onPrimary else colors.onSurface,
+                                    fontSize = 15.sp,
+                                    lineHeight = 20.sp,
+                                    modifier = Modifier.wrapContentWidth()
+                                )
+                            }
+                        }
+
+                        // Время и статус
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .wrapContentWidth()
                                 .padding(top = 4.dp),
                             horizontalArrangement = Arrangement.End,
                             verticalAlignment = Alignment.CenterVertically
@@ -343,7 +464,6 @@ fun MessageItem(
                     }
                 }
 
-                // Отступ справа для своих (симметрично аватару)
                 if (isOwn) {
                     Spacer(modifier = Modifier.width(34.dp))
                 }
@@ -352,12 +472,14 @@ fun MessageItem(
     }
 }
 
+
 @Composable
 fun MessageInput(
     onSendMessage: (String) -> Unit,
     onAttachFile: () -> Unit = {}
 ) {
     var text by remember { mutableStateOf("") }
+    var isUploading by remember { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
     val c_bgtxt = colors.onBackground
     val c_surf = colors.surface
@@ -372,7 +494,7 @@ fun MessageInput(
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .height(56.dp)
             .clip(RoundedCornerShape(28.dp))
-            .background(c_accmin), // Полу-акцентный фон (secondary)
+            .background(c_accmin),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -387,19 +509,28 @@ fun MessageInput(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(c_acc),
+                    .background(if (isUploading) c_surftxt.copy(alpha = 0.5f) else c_acc),
                 contentAlignment = Alignment.Center
             ) {
                 IconButton(
-                    onClick = onAttachFile,
-                    modifier = Modifier.size(40.dp)
+                    onClick = { if (!isUploading) onAttachFile() },
+                    modifier = Modifier.size(40.dp),
+                    enabled = !isUploading
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.AttachFile,
-                        contentDescription = "Прикрепить файл",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    if (isUploading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.AttachFile,
+                            contentDescription = "Прикрепить файл",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
 

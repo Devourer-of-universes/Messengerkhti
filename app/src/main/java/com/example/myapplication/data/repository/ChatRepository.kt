@@ -1,7 +1,9 @@
 package com.example.myapplication.data.repository
 
 import com.example.myapplication.model.*
+import com.example.myapplication.network.MediaResponse
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 interface ChatRepository {
     fun getChats(userId: String): Flow<List<Chat>>
@@ -18,4 +20,7 @@ interface ChatRepository {
     suspend fun createFolder(name: String): Result<ChatFolder>
     suspend fun deleteFolder(folderId: Int): Result<Unit>
     suspend fun moveChatToFolder(chatId: Int, folderId: Int?): Result<Unit>
+    suspend fun uploadFile(chatId: Int, file: File): Flow<Result<ChatMessage>>
+    suspend fun getChatMedia(chatId: Int): com.example.myapplication.model.MediaResponse
+
 }

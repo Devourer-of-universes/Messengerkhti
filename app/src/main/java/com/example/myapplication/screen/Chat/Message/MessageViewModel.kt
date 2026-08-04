@@ -1,7 +1,11 @@
 package com.example.myapplication.screen.Chat.Message
 
+import android.app.Application
+import android.net.Uri
+import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.util.getColumnIndex
 import com.example.myapplication.data.repository.ChatRepository
 import com.example.myapplication.model.ChatInfo
 import com.example.myapplication.model.ChatMessage
@@ -11,11 +15,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
+
 
 @HiltViewModel
 class MessageViewModel @Inject constructor(
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val application: Application  // ← Добавляем Application
 ) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -29,6 +36,9 @@ class MessageViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _isUploading = MutableStateFlow(false)
+    val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -55,14 +65,12 @@ class MessageViewModel @Inject constructor(
             try {
                 chatRepository.getChatInfo(chatId).collect { info ->
                     info?.let {
-                        // Получаем имя и аватар
                         val (name, avatar) = getChatDisplayInfo(it)
                         _chatName.value = name
                         _chatAvatar.value = avatar
                     }
                 }
             } catch (e: Exception) {
-                // Если не загрузилось, ставим значения по умолчанию
                 _chatName.value = "Чат"
                 _chatAvatar.value = "?"
             }
@@ -72,18 +80,22 @@ class MessageViewModel @Inject constructor(
     private fun getChatDisplayInfo(chatInfo: ChatInfo): Pair<String, String> {
         val currentUserId = TokenManager.getUserId()
 
-        // Если групповой чат - берем название группы
         if (chatInfo.isGroup) {
             val name = chatInfo.name.ifEmpty { "Группа" }
             return name to name.take(1)
         }
 
-        // Если личный чат - ищем собеседника
-        val otherUser = chatInfo.participants.find { it.id != currentUserId}
+        val otherUser = chatInfo.participants.find {
+            it.id != currentUserId
+        }
+
         return if (otherUser != null) {
             val name = "${otherUser.surname} ${otherUser.name}".trim()
-            val avatar = otherUser.name.take(1).ifEmpty { "?" }
-            name to avatar
+            val displayName = if (name.isNotEmpty()) name else "Пользователь"
+            val avatar = otherUser.name.take(1).ifEmpty {
+                otherUser.surname.take(1).ifEmpty { "?" }
+            }
+            displayName to avatar
         } else {
             val name = chatInfo.name.ifEmpty { "Чат" }
             name to name.take(1)
@@ -104,6 +116,53 @@ class MessageViewModel @Inject constructor(
                 _error.value = e.message ?: "Ошибка отправки"
             }
         }
+    }
+
+    fun uploadFile(chatId: String, uri: Uri) {
+        viewModelScope.launch {
+            _isUploading.value = true
+            _error.value = null
+
+            try {
+                val file = uriToFile(uri)
+                chatRepository.uploadFile(chatId.toInt(), file).collect { result ->
+                    result.onSuccess {
+                        loadMessages(chatId)
+                    }.onFailure {
+                        _error.value = it.message ?: "Ошибка загрузки файла"
+                    }
+                }
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Ошибка загрузки файла"
+            } finally {
+                _isUploading.value = false
+            }
+        }
+    }
+
+    private fun uriToFile(uri: Uri): File {
+        val context = application.applicationContext
+        val contentResolver = context.contentResolver
+
+        // Пробуем получить имя файла
+        var fileName = "temp_file"
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            val nameIndex = it.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+            if (nameIndex != -1 && it.moveToFirst()) {
+                fileName = it.getString(nameIndex) ?: "temp_file"
+            }
+        }
+
+        // Создаем временный файл
+        val inputStream = contentResolver.openInputStream(uri)
+        val file = File(context.cacheDir, fileName)
+        inputStream?.use { input ->
+            file.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        return file
     }
 
     fun clearError() {

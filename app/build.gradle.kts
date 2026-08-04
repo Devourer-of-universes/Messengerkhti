@@ -58,7 +58,9 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     // WebSocket (Socket.IO)
     implementation("io.socket:socket.io-client:2.0.1")
-
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-gif:2.6.0")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation(libs.androidx.compose.animation.core)
     implementation(libs.androidx.compose.runtime.saveable)
@@ -69,10 +71,12 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
+    implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.runtime)
     implementation(libs.compose.material3)
 
     implementation(libs.dagger.hilt.android)
+    implementation(libs.engage.core)
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.material3)
@@ -80,6 +84,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.generativeai)
+    implementation(libs.volley)
     kapt(libs.dagger.hilt.compiler)
     implementation(libs.dagger.hilt.compose)
     implementation(libs.coil)

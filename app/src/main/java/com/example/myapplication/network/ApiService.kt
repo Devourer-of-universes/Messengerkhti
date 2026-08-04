@@ -101,6 +101,9 @@ interface ApiService {
         @Path("chatId") chatId: Int
     ): SimpleResponse
 
+
+    @GET("api/chats/{chatId}/media")
+    suspend fun getChatMedia(@Path("chatId") chatId: Int): NetworkMediaResponse
     // ========== ЗАДАЧИ ==========
     @GET("api/tasks")
     suspend fun getTasks(
@@ -130,7 +133,37 @@ interface ApiService {
 data class UserResponse(val user: User)
 data class UsersResponse(val users: List<User>)
 data class ContactsResponse(val contacts: List<User>)
+data class UploadResponse(
+    val success: Boolean,
+    val message: ChatMessage
+)
 
+data class MediaResponse(
+    val files: List<MediaFile>,
+    val images: List<MediaFile>
+)
+
+data class MediaFile(
+    val id: Int = 0,
+    val name: String = "",
+    val url: String = "",
+    val size: String = "",
+    val type: String = "",
+    val created_at: String = ""
+)
+data class NetworkMediaResponse(
+    val files: List<NetworkMediaFile>,
+    val images: List<NetworkMediaFile>
+)
+
+data class NetworkMediaFile(
+    val id: Int = 0,
+    val name: String = "",
+    val url: String = "",
+    val size: String = "",
+    val type: String = "",
+    val created_at: String = ""
+)
 // === ИСПРАВЛЕНО: ChatsResponse использует ApiChat ===
 data class ChatsResponse(val chats: List<ApiChat>)
 
@@ -144,7 +177,6 @@ data class TaskResponse(val task: Task)
 data class SimpleResponse(val success: Boolean)
 data class CreateChatResponse(val success: Boolean, val chatId: Int)
 data class SendMessageResponse(val success: Boolean, val message: ChatMessage)
-data class UploadResponse(val success: Boolean, val message: ChatMessage)
 data class MessageReadsResponse(
     val reads: List<ReadReceipt>
 )
@@ -197,7 +229,7 @@ data class UpdateTaskRequest(
 // ========== МОДЕЛИ СЕРВЕРА ==========
 data class ApiChat(
     val id: Int = 0,
-    val name: String? = null,  // ← Может быть null
+    val name: String? = null,
     val is_group: Boolean = false,
     val avatar_uri: String? = null,
     val created_by: Int = 0,
@@ -205,7 +237,17 @@ data class ApiChat(
     val last_message_at: String = "",
     val unread_count: Int = 0,
     val last_message: LastMessage? = null,
-    val folder_id: Int? = null
+    val folder_id: Int? = null,
+    val participants: List<ApiParticipant>? = null  // ← Добавляем
+)
+
+data class ApiParticipant(
+    val id: Int = 0,
+    val surname: String? = null,
+    val name: String? = null,
+    val avatar_uri: String? = null,
+    val status: String? = null,
+    val is_online: Boolean = false
 )
 data class LastMessage(
     val id: Int = 0,

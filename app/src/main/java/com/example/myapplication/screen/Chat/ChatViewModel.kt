@@ -1,4 +1,3 @@
-// screen/Chat/ChatViewModel.kt
 package com.example.myapplication.screen.Chat
 
 import androidx.lifecycle.ViewModel
@@ -6,13 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.ChatRepository
 import com.example.myapplication.model.Chat
 import com.example.myapplication.model.ChatFolder
-import com.example.myapplication.model.ChatParticipant
+import com.example.myapplication.model.MediaItem
+import com.example.myapplication.model.MediaResponse
 import com.example.myapplication.utils.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,23 +45,7 @@ class ChatViewModel @Inject constructor(
             }
         }
     }
-    fun createChat(name: String, userIds: List<Int>) {
-        viewModelScope.launch {
-            try {
-                val chat = Chat(
-                    name = name,
-                    isGroup = userIds.size > 1,
-                    participants = userIds.map {
-                        ChatParticipant(id = it)
-                    }
-                )
-                chatRepository.createChat(chat)
-                loadChats(TokenManager.getUserId().toString())
-            } catch (e: Exception) {
-                _error.value = e.message
-            }
-        }
-    }
+
     fun loadFolders() {
         viewModelScope.launch {
             chatRepository.getFolders().collect { folderList ->
@@ -94,6 +80,24 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 chatRepository.moveChatToFolder(chatId, folderId)
+                loadChats(TokenManager.getUserId().toString())
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun createChat(name: String, userIds: List<Int>) {
+        viewModelScope.launch {
+            try {
+                val chat = Chat(
+                    name = name,
+                    isGroup = userIds.size > 1,
+                    participants = userIds.map {
+                        com.example.myapplication.model.ChatParticipant(id = it)
+                    }
+                )
+                chatRepository.createChat(chat)
                 loadChats(TokenManager.getUserId().toString())
             } catch (e: Exception) {
                 _error.value = e.message
