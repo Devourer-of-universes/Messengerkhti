@@ -15,6 +15,8 @@ data class User(
     val postName: String = "",
     val departmentName: String = "",
     val isSuperAdmin: Boolean = false,
-    val lastSeenAt: Long = 0L,
-    val createdAt: Long = 0L
+    val birthday: String? = null,
+    val startDate: String? = null,
+    val createdAt: String = "",
+    val lastSeenAt: Long = 0L
 )

@@ -1,4 +1,4 @@
-package com.example.myapplication.screen.Tasks
+package com.example.myapplication.screen.Calendar
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TasksScreenViewModel @Inject constructor(
+class CalendarViewModel @Inject constructor(
     private val taskRepository: TaskRepository
 ) : ViewModel() {
 
@@ -25,38 +25,20 @@ class TasksScreenViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    private val _filter = MutableStateFlow<String?>(null)
-    val filter: StateFlow<String?> = _filter.asStateFlow()
-
-    init {
-        loadTasks()
-    }
-
-    fun loadTasks(status: String? = null) {
+    fun loadTasks() {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
 
             try {
-                taskRepository.loadTasks(status = status ?: "pending,in_progress")
+                taskRepository.loadTasks()
                 _tasks.value = taskRepository.tasks.value
-                android.util.Log.d("TasksScreen", "Loaded ${_tasks.value.size} tasks")
             } catch (e: Exception) {
-                _error.value = e.message ?: "Ошибка загрузки"
-                android.util.Log.e("TasksScreen", "Error loading tasks: ${e.message}")
+                _error.value = e.message ?: "Ошибка загрузки задач"
             } finally {
                 _isLoading.value = false
             }
         }
-    }
-
-    fun setFilter(status: String?) {
-        _filter.value = status
-        loadTasks(status)
-    }
-
-    fun refresh() {
-        loadTasks(_filter.value)
     }
 
     fun clearError() {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+
 @Singleton
 class TaskRepository @Inject constructor(
     private val apiService: ApiService
@@ -24,22 +25,15 @@ class TaskRepository @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    suspend fun loadTasks(status: String? = null) {
-        _isLoading.value = true
-
-        try {
-            val response = apiService.getTasks(status = status)
-            _tasks.value = response.tasks
-        } catch (e: Exception) {
-            // Обработка ошибки
-        } finally {
-            _isLoading.value = false
-        }
-    }
-
     suspend fun loadDashboardStats() {
         try {
             val response = apiService.getDashboardStats()
+            android.util.Log.d("TaskRepo", "=== DASHBOARD STATS RESPONSE ===")
+            android.util.Log.d("TaskRepo", "tasksInProgress: ${response.tasksInProgress}")
+            android.util.Log.d("TaskRepo", "documentsTotal: ${response.documentsTotal}")
+            android.util.Log.d("TaskRepo", "activeProcesses: ${response.activeProcesses}")
+            android.util.Log.d("TaskRepo", "unreadNotifications: ${response.unreadNotifications}")
+
             _dashboardStats.value = DashboardStats(
                 tasksInProgress = response.tasksInProgress,
                 documentsTotal = response.documentsTotal,
@@ -47,7 +41,25 @@ class TaskRepository @Inject constructor(
                 unreadNotifications = response.unreadNotifications
             )
         } catch (e: Exception) {
-            // Обработка ошибки
+            android.util.Log.e("TaskRepo", "Error loading dashboard stats: ${e.message}")
+        }
+    }
+
+    suspend fun loadTasks(status: String? = null) {
+        _isLoading.value = true
+
+        try {
+            val response = apiService.getTasks(status = status)
+            android.util.Log.d("TaskRepo", "=== TASKS RESPONSE ===")
+            android.util.Log.d("TaskRepo", "Total tasks: ${response.tasks.size}")
+            response.tasks.forEach { task ->
+                android.util.Log.d("TaskRepo", "Task: ${task.id} - ${task.title} - status: ${task.status}")
+            }
+            _tasks.value = response.tasks
+        } catch (e: Exception) {
+            android.util.Log.e("TaskRepo", "Error loading tasks: ${e.message}")
+        } finally {
+            _isLoading.value = false
         }
     }
 }

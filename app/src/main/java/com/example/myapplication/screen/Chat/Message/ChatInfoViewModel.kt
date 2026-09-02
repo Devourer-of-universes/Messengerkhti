@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.ChatRepository
 import com.example.myapplication.model.ChatInfo
+import com.example.myapplication.model.ChatParticipant
 import com.example.myapplication.model.MediaItem
+import com.example.myapplication.utils.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +39,12 @@ class ChatInfoViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _gifs = MutableStateFlow<List<MediaItem>>(emptyList())
+    val gifs: StateFlow<List<MediaItem>> = _gifs.asStateFlow()
+
+    private val _videos = MutableStateFlow<List<MediaItem>>(emptyList())
+    val videos: StateFlow<List<MediaItem>> = _videos.asStateFlow()
+
     fun loadChatInfo(chatId: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -44,12 +52,14 @@ class ChatInfoViewModel @Inject constructor(
 
             try {
                 chatRepository.getChatInfo(chatId).collect { info ->
+                    android.util.Log.d("ChatInfo", "ChatInfo received: $info")
                     _chatInfo.value = info
                     _isLoading.value = false
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Ошибка загрузки"
                 _isLoading.value = false
+                android.util.Log.e("ChatInfo", "Error loading chat info: ${e.message}")
             }
         }
     }
@@ -59,18 +69,34 @@ class ChatInfoViewModel @Inject constructor(
             try {
                 val response = chatRepository.getChatMedia(chatId.toInt())
 
-                // Исправлено: используем response.images и response.files
-                val images = response.images.map { file ->
-                    MediaItem(
+                // Разделяем на изображения, GIF и видео
+                val images = mutableListOf<MediaItem>()
+                val gifs = mutableListOf<MediaItem>()
+                val videos = mutableListOf<MediaItem>()
+
+                response.images.forEach { file ->
+                    val item = MediaItem(
                         id = file.id.toString(),
                         name = file.name,
                         url = file.url,
                         size = file.size,
                         date = formatDate(file.created_at),
-                        type = "image"
+                        type = when {
+                            file.name.endsWith(".gif") -> "gif"
+                            file.name.endsWith(".mp4") || file.name.endsWith(".mov") -> "video"
+                            else -> "image"
+                        }
                     )
+                    when (item.type) {
+                        "gif" -> gifs.add(item)
+                        "video" -> videos.add(item)
+                        else -> images.add(item)
+                    }
                 }
+
                 _images.value = images
+                _gifs.value = gifs
+                _videos.value = videos
 
                 val files = response.files.map { file ->
                     MediaItem(
@@ -84,11 +110,9 @@ class ChatInfoViewModel @Inject constructor(
                 }
                 _files.value = files
 
-                // Ссылки - пока заглушка
                 _links.value = emptyList()
 
             } catch (e: Exception) {
-                // Игнорируем ошибку загрузки медиа
                 android.util.Log.e("ChatInfo", "Error loading media: ${e.message}")
             }
         }

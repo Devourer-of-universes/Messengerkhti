@@ -22,7 +22,18 @@ interface ApiService {
     // ========== ПОЛЬЗОВАТЕЛИ ==========
     @GET("api/users")
     suspend fun getUsers(@Query("search") search: String? = null): UsersResponse
+    @GET("api/users/{userId}")
+    suspend fun getUserById(@Path("userId") userId: Int): UserResponse
 
+    @PUT("api/auth/update-profile")
+    suspend fun updateProfile(
+        @Body request: UpdateProfileRequest
+    ): SimpleResponse
+
+    @POST("api/auth/change-password")
+    suspend fun changePassword(
+        @Body request: ChangePasswordRequest
+    ): SimpleResponse
     @GET("api/users/contacts")
     suspend fun getContacts(): ContactsResponse
 
@@ -125,6 +136,33 @@ interface ApiService {
     ): TaskResponse
 
     // ========== СТАТИСТИКА ==========
+
+    // Sessions
+    @GET("api/auth/sessions")
+    suspend fun getSessions(): SessionsResponse
+
+    @DELETE("api/auth/sessions/{sessionId}")
+    suspend fun terminateSession(@Path("sessionId") sessionId: Int): SimpleResponse
+
+    @POST("api/auth/sessions/terminate-others")
+    suspend fun terminateOtherSessions(): SimpleResponse
+
+    @PUT("api/auth/update-profile")
+    suspend fun updateUserProfile(
+        @Query("userId") userId: Int,
+        @Query("surname") surname: String,
+        @Query("name") name: String,
+        @Query("patronymic") patronymic: String? = null,
+        @Query("phone") phone: String,
+        @Query("email") email: String
+    ): SimpleResponse
+
+    @POST("api/auth/change-password")
+    suspend fun changePassword(
+        currentPassword: String,
+        @Body request: String
+    ): SimpleResponse
+
     @GET("api/dashboard/stats")
     suspend fun getDashboardStats(): DashboardStatsResponse
 }
@@ -174,7 +212,10 @@ data class MessagesResponse(
     val messages: List<ApiMessage>
 )data class TasksResponse(val tasks: List<Task>)
 data class TaskResponse(val task: Task)
-data class SimpleResponse(val success: Boolean)
+data class SimpleResponse(
+    val success: Boolean,
+    val message: String? = null  // ← Добавляем message
+)
 data class CreateChatResponse(val success: Boolean, val chatId: Int)
 data class SendMessageResponse(val success: Boolean, val message: ChatMessage)
 data class MessageReadsResponse(
@@ -185,13 +226,13 @@ data class FoldersResponse(val folders: List<ChatFolder>)
 data class CreateFolderResponse(val success: Boolean, val folder: ChatFolder)
 data class CreateFolderRequest(val name: String)
 
+
 data class DashboardStatsResponse(
     val tasksInProgress: Int,
     val documentsTotal: Int,
     val activeProcesses: Int,
     val unreadNotifications: Int
 )
-
 // ========== REQUEST CLASSES ==========
 data class CreateChatRequest(
     val userIds: List<Int>,
@@ -225,7 +266,19 @@ data class UpdateTaskRequest(
     val progress: Int? = null,
     val dueDate: String? = null
 )
+data class UpdateProfileRequest(
+    val email: String? = null,
+    val tel_num: String? = null,
+    val surname: String? = null,
+    val name: String? = null,
+    val patronymic: String? = null,
+    val birthday: String? = null
+)
 
+data class ChangePasswordRequest(
+    val currentPassword: String,
+    val newPassword: String
+)
 // ========== МОДЕЛИ СЕРВЕРА ==========
 data class ApiChat(
     val id: Int = 0,

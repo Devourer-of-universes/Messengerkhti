@@ -6,6 +6,8 @@ import com.example.myapplication.model.LoginRequest
 import com.example.myapplication.model.RegisterRequest
 import com.example.myapplication.model.User
 import com.example.myapplication.network.ApiService
+import com.example.myapplication.network.ChangePasswordRequest
+import com.example.myapplication.network.UpdateProfileRequest
 import com.example.myapplication.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// data/repository/AuthRepository.kt
+// data/repository/AuthRepository.kt
 @Singleton
 class AuthRepository @Inject constructor(
     private val apiService: ApiService
@@ -40,7 +44,11 @@ class AuthRepository @Inject constructor(
                     username = response.user.username,
                     email = response.user.email
                 )
-                _currentUser.value = response.user
+
+                // Загружаем полную информацию о пользователе
+                val userResponse = apiService.getUserById(response.user.id)
+                _currentUser.value = userResponse.user
+
                 true
             } else {
                 _error.value = "Ошибка входа"
@@ -67,7 +75,10 @@ class AuthRepository @Inject constructor(
                     username = response.user.username,
                     email = response.user.email
                 )
-                _currentUser.value = response.user
+
+                val userResponse = apiService.getUserById(response.user.id)
+                _currentUser.value = userResponse.user
+
                 true
             } else {
                 _error.value = "Ошибка регистрации"
@@ -83,11 +94,64 @@ class AuthRepository @Inject constructor(
 
     suspend fun getCurrentUser(): User? {
         return try {
-            val response = apiService.getCurrentUser()
-            _currentUser.value = response.user
-            response.user
+            val userId = TokenManager.getUserId()
+            if (userId == 0) return null
+
+            val response = apiService.getUserById(userId)
+            val user = response.user
+
+            _currentUser.value = user
+
+            if (user.avatarUri.isNotEmpty()) {
+                TokenManager.saveAvatarUri(user.avatarUri)
+            }
+
+            android.util.Log.d("AuthRepository", "User loaded: ${user.surname} ${user.name}")
+            android.util.Log.d("AuthRepository", "Post: ${user.postName}, Department: ${user.departmentName}")
+
+            user
         } catch (e: Exception) {
+            android.util.Log.e("AuthRepository", "Error loading user: ${e.message}")
             null
+        }
+    }
+
+    suspend fun updateProfile(request: UpdateProfileRequest): Boolean {
+        return try {
+            val response = apiService.updateProfile(request)
+            if (response.success) {
+                // Обновляем локальные данные
+                val current = _currentUser.value
+                if (current != null) {
+                    _currentUser.value = current.copy(
+                        email = request.email ?: current.email,
+                        telNum = request.tel_num ?: current.telNum,
+                        surname = request.surname ?: current.surname,
+                        name = request.name ?: current.name,
+                        patronymic = request.patronymic ?: current.patronymic,
+                        birthday = request.birthday ?: current.birthday
+                    )
+                }
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun changePassword(currentPassword: String, newPassword: String): Boolean {
+        return try {
+            val response = apiService.changePassword(
+                ChangePasswordRequest(
+                    currentPassword,
+                    newPassword
+                )
+            )
+            response.success
+        } catch (e: Exception) {
+            false
         }
     }
 

@@ -150,7 +150,7 @@ fun NavBottomBar(
                                 Icon(
                                     imageVector = navItem.iconId,
                                     contentDescription = navItem.title,
-                                    tint = if (isSelected) txtMainWhite else c_bgtxt.copy(alpha = 0.6f),
+                                    tint = if (isSelected) txtMainWhite else txtMainGreyLight,
                                     modifier = Modifier.size(26.dp)
                                 )
                             }

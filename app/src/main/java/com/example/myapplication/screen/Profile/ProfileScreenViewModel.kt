@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.AuthRepository
 import com.example.myapplication.data.repository.TaskRepository
+import com.example.myapplication.model.DashboardStats
+import com.example.myapplication.model.Notification
+import com.example.myapplication.model.Task
 import com.example.myapplication.model.User
 import com.example.myapplication.utils.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// screen/Profile/ProfileScreenViewModel.kt
 @HiltViewModel
 class ProfileScreenViewModel @Inject constructor(
     private val authRepository: AuthRepository,
@@ -22,11 +26,14 @@ class ProfileScreenViewModel @Inject constructor(
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user.asStateFlow()
 
-    private val _unreadCount = MutableStateFlow(0)
-    val unreadCount: StateFlow<Int> = _unreadCount.asStateFlow()
+    private val _notifications = MutableStateFlow<List<NotificationItem>>(emptyList())
+    val notifications: StateFlow<List<NotificationItem>> = _notifications.asStateFlow()
 
-    private val _tasksCount = MutableStateFlow(0)
-    val tasksCount: StateFlow<Int> = _tasksCount.asStateFlow()
+    private val _tasks = MutableStateFlow<List<Task>>(emptyList())
+    val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
+
+    private val _stats = MutableStateFlow<DashboardStats?>(null)
+    val stats: StateFlow<DashboardStats?> = _stats.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -35,7 +42,6 @@ class ProfileScreenViewModel @Inject constructor(
     val error: StateFlow<String?> = _error.asStateFlow()
 
     init {
-        // Загружаем пользователя из кэша
         val cachedUser = authRepository.currentUser.value
         if (cachedUser != null) {
             _user.value = cachedUser
@@ -62,23 +68,58 @@ class ProfileScreenViewModel @Inject constructor(
         }
     }
 
-    fun loadUnreadCount() {
+    fun loadNotifications() {
         viewModelScope.launch {
             try {
-                // TODO: Реализовать получение количества непрочитанных
-                // Пока заглушка
-                _unreadCount.value = 3
+                // TODO: Загружать из API
+                _notifications.value = listOf(
+                    NotificationItem(
+                        id = "1",
+                        title = "Новое сообщение",
+                        message = "Анна Иванова: Привет! Как дела?",
+                        time = "5 мин назад",
+                        type = "message",
+                        isRead = false
+                    ),
+                    NotificationItem(
+                        id = "2",
+                        title = "Напоминание о задаче",
+                        message = "Срок выполнения задачи 'Отчет за месяц' приближается",
+                        time = "1 час назад",
+                        type = "task",
+                        isRead = false
+                    ),
+                    NotificationItem(
+                        id = "3",
+                        title = "Системное обновление",
+                        message = "Доступна новая версия приложения",
+                        time = "2 дня назад",
+                        type = "system",
+                        isRead = true
+                    )
+                )
             } catch (e: Exception) {
                 // Игнорируем
             }
         }
     }
 
-    fun loadTasksCount() {
+    fun loadTasks() {
         viewModelScope.launch {
             try {
                 taskRepository.loadTasks(status = "pending,in_progress")
-                _tasksCount.value = taskRepository.tasks.value.size
+                _tasks.value = taskRepository.tasks.value.take(5)
+            } catch (e: Exception) {
+                // Игнорируем
+            }
+        }
+    }
+
+    fun loadStats() {
+        viewModelScope.launch {
+            try {
+                taskRepository.loadDashboardStats()
+                _stats.value = taskRepository.dashboardStats.value
             } catch (e: Exception) {
                 // Игнорируем
             }

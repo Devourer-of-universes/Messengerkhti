@@ -3,26 +3,31 @@ package com.example.myapplication.screen.Chat.Message
 import android.app.Application
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.util.getColumnIndex
 import com.example.myapplication.data.repository.ChatRepository
 import com.example.myapplication.model.ChatInfo
 import com.example.myapplication.model.ChatMessage
+import com.example.myapplication.network.WebSocketManager
 import com.example.myapplication.utils.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
 
+// screen/Chat/Message/MessageViewModel.kt
 @HiltViewModel
 class MessageViewModel @Inject constructor(
-    private val chatRepository: ChatRepository,
-    private val application: Application  // ← Добавляем Application
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -37,13 +42,40 @@ class MessageViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _isUploading = MutableStateFlow(false)
-    val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
-
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private var currentChatId: String? = null
+
+    // Подписка на новые сообщения через WebSocket
+    private val _newMessage = MutableSharedFlow<ChatMessage>()
+    val newMessage: SharedFlow<ChatMessage> = _newMessage.asSharedFlow()
+
+    init {
+        // Подключаемся к WebSocket при создании ViewModel
+        viewModelScope.launch {
+            val token = TokenManager.getAccessToken()
+            if (!token.isNullOrEmpty()) {
+                WebSocketManager.connect(token)
+            }
+        }
+
+        // Слушаем новые сообщения
+        viewModelScope.launch {
+            WebSocketManager.newMessageFlow.collect { message ->
+                // Обновляем список сообщений, если сообщение из текущего чата
+                if (message.chatId.toString() == currentChatId) {
+                    val currentList = _messages.value.toMutableList()
+                    currentList.add(message)
+                    _messages.value = currentList
+                    Log.d("MessageViewModel", "New message added via WebSocket: ${message.content}")
+                }
+            }
+        }
+    }
+
     fun loadMessages(chatId: String) {
+        currentChatId = chatId
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
@@ -111,61 +143,21 @@ class MessageViewModel @Inject constructor(
                     createdAt = System.currentTimeMillis().toString()
                 )
                 chatRepository.sendMessage(message)
-                loadMessages(chatId)
+                // Не обновляем список сразу, ждем WebSocket
+                // loadMessages(chatId)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Ошибка отправки"
             }
         }
     }
 
-    fun uploadFile(chatId: String, uri: Uri) {
-        viewModelScope.launch {
-            _isUploading.value = true
-            _error.value = null
-
-            try {
-                val file = uriToFile(uri)
-                chatRepository.uploadFile(chatId.toInt(), file).collect { result ->
-                    result.onSuccess {
-                        loadMessages(chatId)
-                    }.onFailure {
-                        _error.value = it.message ?: "Ошибка загрузки файла"
-                    }
-                }
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Ошибка загрузки файла"
-            } finally {
-                _isUploading.value = false
-            }
-        }
-    }
-
-    private fun uriToFile(uri: Uri): File {
-        val context = application.applicationContext
-        val contentResolver = context.contentResolver
-
-        // Пробуем получить имя файла
-        var fileName = "temp_file"
-        val cursor = contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            val nameIndex = it.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
-            if (nameIndex != -1 && it.moveToFirst()) {
-                fileName = it.getString(nameIndex) ?: "temp_file"
-            }
-        }
-
-        // Создаем временный файл
-        val inputStream = contentResolver.openInputStream(uri)
-        val file = File(context.cacheDir, fileName)
-        inputStream?.use { input ->
-            file.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-        return file
-    }
-
     fun clearError() {
         _error.value = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Не отключаем WebSocket при закрытии одного чата,
+        // чтобы другие чаты тоже получали сообщения
     }
 }

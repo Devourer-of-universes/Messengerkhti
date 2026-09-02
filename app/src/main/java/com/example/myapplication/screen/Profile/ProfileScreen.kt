@@ -1,10 +1,12 @@
 package com.example.myapplication.screen.Profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -12,15 +14,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.myapplication.model.User
+import com.example.myapplication.model.Task
+import com.example.myapplication.model.Notification
 import com.example.myapplication.ui.components.LoadingIndicator
-import com.example.myapplication.utils.TokenManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,45 +34,29 @@ fun ProfileScreen(
     viewModel: ProfileScreenViewModel = hiltViewModel()
 ) {
     val user by viewModel.user.collectAsState()
+    val notifications by viewModel.notifications.collectAsState()
+    val tasks by viewModel.tasks.collectAsState()
+    val stats by viewModel.stats.collectAsState()  // ← Добавляем
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
-    val unreadCount by viewModel.unreadCount.collectAsState()
-    val tasksCount by viewModel.tasksCount.collectAsState()
+
+    val colors = MaterialTheme.colorScheme
 
     LaunchedEffect(Unit) {
         viewModel.loadProfile()
-        viewModel.loadUnreadCount()
-        viewModel.loadTasksCount()
+        viewModel.loadNotifications()
+        viewModel.loadTasks()
+        viewModel.loadStats()
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Профиль",
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                actions = {
-                    IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Настройки",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-            )
-        }
+        containerColor = colors.background,
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(top = 0.dp)
         ) {
             when {
                 isLoading -> LoadingIndicator()
@@ -78,38 +66,75 @@ fun ProfileScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text("Ошибка: $error")
+                        Text("Ошибка: $error", color = colors.error)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = { viewModel.loadProfile() }) {
+                        Button(
+                            onClick = { viewModel.loadProfile() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colors.primary
+                            )
+                        ) {
                             Text("Повторить")
                         }
                     }
                 }
                 user != null -> {
-                    ProfileContent(
-                        user = user!!,
-                        unreadCount = unreadCount,
-                        tasksCount = tasksCount,
-                        onItemClick = { route ->
-                            navController.navigate(route)
-                        },
-                        onLogout = {
-                            viewModel.logout()
-                            navController.navigate("login") {
-                                popUpTo(0) { inclusive = true }
-                            }
-                        }
-                    )
-                }
-                else -> {
-                    Column(
+                    LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Пользователь не найден")
-                        Button(onClick = { viewModel.loadProfile() }) {
-                            Text("Обновить")
+                        // Шапка с аватаром
+                        item {
+                            ProfileHeader(
+                                user = user!!,
+                                colors = colors
+                            )
+                        }
+
+                        // Кнопки действий
+                        item {
+                            ProfileActionsRow(
+                                onLogout = {
+                                    viewModel.logout()
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                },
+                                colors = colors,
+                                navController = navController
+                            )
+                        }
+
+                        // Дашборд
+                        item {
+                            DashboardCard(
+                                tasks = tasks,
+                                stats = stats,  // ← Передаем статистику
+                                onSeeAll = { navController.navigate("dashboard") },
+                                colors = colors
+                            )
+                        }
+
+                        // Уведомления
+                        item {
+                            NotificationsCard(
+                                notifications = notifications,
+                                onSeeAll = { navController.navigate("notifications") },
+                                colors = colors
+                            )
+                        }
+
+                        // О приложении
+                        item {
+                            AppInfoCard(
+                                onClick = { navController.navigate("appinfo") },
+                                colors = colors
+                            )
+                        }
+
+                        // Отступ снизу
+                        item {
+                            Spacer(modifier = Modifier.height(80.dp))
                         }
                     }
                 }
@@ -119,224 +144,318 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileContent(
-    user: User,
-    unreadCount: Int,
-    tasksCount: Int,
-    onItemClick: (String) -> Unit,
-    onLogout: () -> Unit
+fun ProfileHeader(
+    user: com.example.myapplication.model.User,
+    colors: ColorScheme
 ) {
-    val colors = MaterialTheme.colorScheme
+    val displayName = "${user.surname} ${user.name}".trim()
+    val avatarLetter = user.name.take(1).uppercase()
+    val avatarUri = user.avatarUri
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // ===== ШАПКА ПРОФИЛЯ =====
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Аватар
-                    Surface(
-                        modifier = Modifier.size(100.dp),
-                        shape = CircleShape,
-                        color = colors.primaryContainer
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = user.name.take(1).uppercase(),
-                                fontSize = 40.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colors.primary
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // ФИО
-                    Text(
-                        text = "${user.surname} ${user.name} ${user.patronymic}",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.onSurface
-                    )
-
-                    // Должность
-                    if (user.postName.isNotEmpty()) {
-                        Text(
-                            text = user.postName,
-                            fontSize = 14.sp,
-                            color = colors.onSurfaceVariant
-                        )
-                    }
-
-                    // Отдел
-                    if (user.departmentName.isNotEmpty()) {
-                        Text(
-                            text = "🏢 ${user.departmentName}",
-                            fontSize = 14.sp,
-                            color = colors.onSurfaceVariant
-                        )
-                    }
-
-                    // Статус
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = if (user.status == "active")
-                            Color.Green.copy(alpha = 0.1f)
-                        else
-                            Color.Gray.copy(alpha = 0.1f)
-                    ) {
-                        Text(
-                            text = if (user.status == "active") "🟢 Активен" else "⚪ Не в сети",
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                            color = if (user.status == "active") Color.Green else Color.Gray
-                        )
-                    }
-                }
+        // Аватар
+        Box(
+            modifier = Modifier
+                .size(96.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    spotColor = colors.primary.copy(alpha = 0.3f),
+                    shape = CircleShape,
+                    clip = false
+                )
+                .clip(CircleShape)
+                .background(colors.primary.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (avatarUri.isNotEmpty()) {
+                // TODO: Загрузить изображение через Coil
+                Text(
+                    text = "🖼️",
+                    fontSize = 32.sp
+                )
+            } else {
+                Text(
+                    text = avatarLetter,
+                    color = colors.primary,
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
             }
         }
 
-        // ===== СТАТИСТИКА =====
-        item {
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Имя
+        Text(
+            text = displayName.ifEmpty { user.username },
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        // Должность
+        if (user.postName.isNotEmpty()) {
+            Text(
+                text = user.postName,
+                fontSize = 14.sp,
+                color = colors.onSurfaceVariant
+            )
+        }
+        if (user.departmentName.isNotEmpty()) {
+            Text(
+                text = "🏢 ${user.departmentName}",
+                fontSize = 14.sp,
+                color = colors.onSurfaceVariant
+            )
+        }
+
+        // Дополнительная информация (можно показать в виде чипов)
+        Row(
+            modifier = Modifier.padding(top = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (user.birthday != null) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = colors.surfaceVariant
+                ) {
+                    Text(
+                        text = "🎂 ${user.birthday}",
+                        fontSize = 11.sp,
+                        color = colors.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+            }
+            if (user.startDate != null) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = colors.surfaceVariant
+                ) {
+                    Text(
+                        text = "📅 С ${user.startDate}",
+                        fontSize = 11.sp,
+                        color = colors.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+            }
+            if (user.isSuperAdmin) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = colors.primary.copy(alpha = 0.1f)
+                ) {
+                    Text(
+                        text = "👑 Супер-админ",
+                        fontSize = 11.sp,
+                        color = colors.primary,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileActionsRow(
+    onLogout: () -> Unit,
+    colors: ColorScheme,
+    navController: NavController  // ← Исправлено: передаем NavController
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        ProfileActionButton(
+            icon = Icons.Default.Settings,
+            label = "Настройки",
+            onClick = { navController.navigate("settings") },
+            colors = colors
+        )
+        ProfileActionButton(
+            icon = Icons.Default.Person,
+            label = "Личные данные",
+            onClick = { navController.navigate("profile_info") },
+            colors = colors
+        )
+        ProfileActionButton(
+            icon = Icons.Default.Logout,
+            label = "Выйти",
+            onClick = onLogout,
+            colors = colors
+        )
+    }
+}
+
+@Composable
+fun ProfileActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    colors: ColorScheme
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .border(
+                    width = 2.dp,
+                    color = colors.primary,
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = colors.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = colors.onSurfaceVariant,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+fun DashboardCard(
+    tasks: List<Task>,
+    stats: com.example.myapplication.model.DashboardStats?,
+    onSeeAll: () -> Unit,
+    colors: ColorScheme
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = colors.surface
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Заголовок
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Dashboard,
+                        contentDescription = null,
+                        tint = colors.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = "Дашборд",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.onBackground
+                    )
+                }
+                TextButton(onClick = onSeeAll) {
+                    Text("Подробнее", fontSize = 13.sp, color = colors.primary)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Статистика в виде сетки
+            val tasksInProgress = tasks.count { it.status == "in_progress" || it.status == "pending" }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StatCard(
-                    value = unreadCount.toString(),
-                    label = "Уведомления",
-                    icon = Icons.Default.Notifications,
-                    color = colors.primary,
-                    onClick = { onItemClick("notifications") },
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    value = tasksCount.toString(),
-                    label = "Задачи",
+                DashboardStatItem(
+                    value = tasksInProgress.toString(),
+                    label = "В работе",
                     icon = Icons.Default.Task,
-                    color = colors.tertiary,
-                    onClick = { onItemClick("tasks") },
+                    color = Color(0xFF3B82F6),
+                    colors = colors,
+                    modifier = Modifier.weight(1f)
+                )
+                DashboardStatItem(
+                    value = stats?.documentsTotal?.toString() ?: "0",
+                    label = "Документов",
+                    icon = Icons.Default.DocumentScanner,
+                    color = Color(0xFF10B981),
+                    colors = colors,
                     modifier = Modifier.weight(1f)
                 )
             }
-        }
-
-        // ===== МЕНЮ =====
-        item {
-            Card(
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    MenuItem(
-                        icon = Icons.Default.Info,
-                        title = "Личная информация",
-                        subtitle = "Редактировать профиль",
-                        onClick = { onItemClick("profile_info") }
-                    )
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
-                    MenuItem(
-                        icon = Icons.Default.Dashboard,
-                        title = "Дашборд",
-                        subtitle = "Статистика и задачи",
-                        onClick = { onItemClick("dashboard") }
-                    )
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
-                    MenuItem(
-                        icon = Icons.Default.Notifications,
-                        title = "Уведомления",
-                        subtitle = if (unreadCount > 0) "$unreadCount непрочитанных" else "Нет новых",
-                        badge = if (unreadCount > 0) unreadCount.toString() else null,
-                        onClick = { onItemClick("notifications") }
-                    )
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
-                    MenuItem(
-                        icon = Icons.Default.Settings,
-                        title = "Настройки",
-                        subtitle = "Тема, безопасность",
-                        onClick = { onItemClick("settings") }
-                    )
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
-                    MenuItem(
-                        icon = Icons.Default.Help,
-                        title = "О приложении",
-                        subtitle = "Версия 1.0.0",
-                        onClick = { onItemClick("appinfo") }
-                    )
-                }
-            }
-        }
-
-        // ===== ВЫХОД =====
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = colors.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onLogout() }
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Logout,
-                        contentDescription = "Выход",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Выйти из аккаунта",
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                DashboardStatItem(
+                    value = stats?.activeProcesses?.toString() ?: "0",
+                    label = "Процессов",
+                    icon = Icons.Default.Autorenew,
+                    color = Color(0xFF8B5CF6),
+                    colors = colors,
+                    modifier = Modifier.weight(1f)
+                )
+                DashboardStatItem(
+                    value = stats?.unreadNotifications?.toString() ?: "0",
+                    label = "Уведомлений",
+                    icon = Icons.Default.Notifications,
+                    color = Color(0xFFEF4444),
+                    colors = colors,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
 }
 
 @Composable
-fun StatCard(
+fun DashboardStatItem(
     value: String,
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     color: Color,
-    onClick: () -> Unit,
+    colors: ColorScheme,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
-            .height(80.dp)
-            .clickable { onClick() },
+            .height(72.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = colors.surfaceVariant.copy(alpha = 0.3f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
@@ -345,23 +464,32 @@ fun StatCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(28.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
             Column {
                 Text(
                     text = value,
-                    fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight = FontWeight.Bold,
+                    color = colors.onBackground
                 )
                 Text(
                     text = label,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    fontSize = 11.sp,
+                    color = colors.onSurfaceVariant,
+                    maxLines = 1
                 )
             }
         }
@@ -369,59 +497,204 @@ fun StatCard(
 }
 
 @Composable
-fun MenuItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    badge: String? = null
+fun NotificationsCard(
+    notifications: List<NotificationItem>,
+    onSeeAll: () -> Unit,
+    colors: ColorScheme
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = colors.surface
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = null,
+                        tint = colors.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = "Уведомления",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.onBackground
+                    )
+                    if (notifications.count { !it.isRead } > 0) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0xFFEF4444),
+                            modifier = Modifier.size(20.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = notifications.count { !it.isRead }.toString(),
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                TextButton(onClick = onSeeAll) {
+                    Text("Все", fontSize = 13.sp, color = colors.primary)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            val unreadNotifications = notifications.filter { !it.isRead }
+            val displayNotifications = if (unreadNotifications.isNotEmpty()) {
+                unreadNotifications.take(3)
+            } else {
+                notifications.take(3)
+            }
+
+            if (displayNotifications.isEmpty()) {
+                Text(
+                    text = "Нет уведомлений 🔔",
+                    fontSize = 14.sp,
+                    color = colors.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+            } else {
+                displayNotifications.forEachIndexed { index, notification ->
+                    NotificationItemRow(
+                        notification = notification,
+                        colors = colors
+                    )
+                    if (index < displayNotifications.size - 1) {
+                        Divider(
+                            color = colors.onSurface.copy(alpha = 0.08f),
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NotificationItemRow(
+    notification: NotificationItem,
+    colors: ColorScheme
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(16.dp),
+            .clickable { /* TODO: Открыть уведомление */ }
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
+        if (!notification.isRead) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(colors.primary)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+        } else {
+            Spacer(modifier = Modifier.width(20.dp))
+        }
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
-                text = title,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                text = notification.title,
+                fontSize = 14.sp,
+                fontWeight = if (!notification.isRead) FontWeight.Medium else FontWeight.Normal,
+                color = colors.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = subtitle,
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = notification.message,
+                fontSize = 13.sp,
+                color = colors.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
-        if (badge != null) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(20.dp)
+
+        Text(
+            text = notification.time,
+            fontSize = 11.sp,
+            color = colors.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun AppInfoCard(
+    onClick: () -> Unit,
+    colors: ColorScheme
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = colors.surface
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                tint = colors.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = badge,
-                        color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    text = "О приложении",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.onBackground
+                )
+                Text(
+                    text = "Версия 1.0.0",
+                    fontSize = 13.sp,
+                    color = colors.onSurfaceVariant
+                )
             }
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.onSurfaceVariant
+            )
         }
-        Icon(
-            imageVector = Icons.Default.KeyboardArrowRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }

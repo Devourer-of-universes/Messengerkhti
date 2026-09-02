@@ -41,6 +41,7 @@ import com.example.myapplication.ui.theme.txtMainWhite
 import java.text.SimpleDateFormat
 import java.util.*
 import android.net.Uri
+import android.util.Log.d
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
@@ -50,7 +51,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
-import com.android.volley.toolbox.ImageRequest
+import coil.request.ImageRequest
+import com.example.myapplication.utils.DateUtils.formatDateHeader
+import com.example.myapplication.utils.DateUtils.formatFullDateTime
+import com.example.myapplication.utils.DateUtils.formatMessageDate
+import com.example.myapplication.utils.DateUtils.formatTime
+import com.example.myapplication.utils.DownloadUtils
+import com.example.myapplication.utils.TextFormatter
 import com.google.android.engage.common.datamodel.Image
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,19 +72,22 @@ fun MessageScreen(
     val error by viewModel.error.collectAsState()
     val chatName by viewModel.chatName.collectAsState()
     val chatAvatar by viewModel.chatAvatar.collectAsState()
-
-    // File picker для Android
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let {
-            viewModel.uploadFile(chatId, it)
-        }
-    }
+    val context = LocalContext.current
 
     LaunchedEffect(chatId) {
         viewModel.loadMessages(chatId)
         viewModel.loadChatInfo(chatId)
+        val offset = TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000 * 60 * 60)
+        val testDate = "2026-08-04T07:22:33.961Z"
+        d("DateUtils", "=== ТЕСТ ДАТЫ ===")
+        d("DateUtils", "Исходная: $testDate")
+        d("DateUtils", "formatTime: ${formatTime(testDate)}")
+        d("DateUtils", "formatMessageDate: ${formatMessageDate(testDate)}")
+        d("DateUtils", "formatDateHeader: ${formatDateHeader(testDate)}")
+        d("DateUtils", "formatFullDateTime: ${formatFullDateTime(testDate)}")
+        d("DateUtils", "offset: ${"UTC${if (offset >= 0) "+" else ""}$offset"}")
+
+
     }
 
     val colors = MaterialTheme.colorScheme
@@ -138,7 +148,7 @@ fun MessageScreen(
                     viewModel.sendMessage(chatId, content)
                 },
                 onAttachFile = {
-                    launcher.launch("*/*")
+                    // TODO: Открыть выбор файла
                 }
             )
         }
@@ -172,7 +182,19 @@ fun MessageScreen(
                 else -> {
                     MessageList(
                         messages = messages,
-                        currentUserId = TokenManager.getUserId()
+                        currentUserId = TokenManager.getUserId(),
+                        onImageClick = { imageUrl, fileName, senderName, sentAt ->
+                            // Кодируем URL и имя файла
+                            val encodedUrl = java.net.URLEncoder.encode(imageUrl, "UTF-8")
+                            val encodedFileName = java.net.URLEncoder.encode(fileName, "UTF-8")
+                            val encodedSender = java.net.URLEncoder.encode(senderName, "UTF-8")
+                            val encodedTime = java.net.URLEncoder.encode(sentAt, "UTF-8")
+
+                            navController.navigate("image_viewer/$encodedUrl/$encodedFileName/$encodedSender/$encodedTime")
+                        },
+                        onFileClick = { fileUrl, fileName ->
+                            DownloadUtils.downloadFile(context, fileUrl, fileName)
+                        }
                     )
                 }
             }
@@ -183,7 +205,9 @@ fun MessageScreen(
 @Composable
 fun MessageList(
     messages: List<ChatMessage>,
-    currentUserId: Int
+    currentUserId: Int,
+    onImageClick: (String, String, String, String) -> Unit,  // imageUrl, fileName, senderName, sentAt
+    onFileClick: (String, String) -> Unit
 ) {
     val listState = rememberLazyListState()
     val colors = MaterialTheme.colorScheme
@@ -222,7 +246,9 @@ fun MessageList(
             MessageItem(
                 message = message,
                 isOwn = isOwn,
-                showAvatar = !isOwn
+                showAvatar = !isOwn,
+                onImageClick = onImageClick,
+                onFileClick = onFileClick
             )
         }
     }
@@ -256,9 +282,13 @@ fun DateSeparator(date: String) {
 fun MessageItem(
     message: ChatMessage,
     isOwn: Boolean,
-    showAvatar: Boolean
+    showAvatar: Boolean,
+    onImageClick: (String, String, String, String) -> Unit,
+    onFileClick: (String, String) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    val baseUrl = "http://10.0.2.2:3000"  // ← Добавляем здесь
 
     // Определяем тип контента
     val isImage = message.content.contains("📷") ||
@@ -317,127 +347,62 @@ fun MessageItem(
                     Spacer(modifier = Modifier.width(6.dp))
                 }
 
-                Surface(
-                    shape = RoundedCornerShape(
-                        topStart = if (isOwn) 16.dp else 4.dp,
-                        topEnd = if (isOwn) 4.dp else 16.dp,
-                        bottomStart = if (isOwn) 16.dp else 12.dp,
-                        bottomEnd = if (isOwn) 12.dp else 16.dp
-                    ),
-                    color = if (isOwn) colors.primary else colors.surfaceVariant,
-                    shadowElevation = 1.dp,
-                    modifier = Modifier.wrapContentWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(
-                            horizontal = 12.dp,
-                            vertical = 8.dp
-                        )
-                    ) {
-                        when {
-                            isImage -> {
-                                // Извлекаем URL изображения
-                                val lines = message.content.split("\n")
-                                val imageUrl = lines.lastOrNull()?.trim() ?: ""
-                                val baseUrl = "http://10.0.2.2:3000" // Базовый URL сервера
-                                val fullImageUrl = if (imageUrl.startsWith("/uploads/")) {
-                                    baseUrl + imageUrl
-                                } else {
-                                    imageUrl
-                                }
+                // Сообщение
+                if (isImage) {
+                    // Изображение - без фона и отступов
+                    val lines = message.content.split("\n")
+                    val imageUrl = lines.lastOrNull()?.trim() ?: ""
+                    val fullImageUrl = if (imageUrl.startsWith("/uploads/")) {
+                        baseUrl + imageUrl
+                    } else {
+                        imageUrl
+                    }
+                    val fileName = imageUrl.substringAfterLast("/")
 
-                                Column {
-                                    // Изображение через Coil
-                                    Box(
-                                        modifier = Modifier
-                                            .width(200.dp)
-                                            .height(150.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(colors.surfaceVariant)
-                                            .clickable {
-                                                // TODO: Открыть полноэкранный просмотр
-                                            }
-                                    ) {
-                                        AsyncImage(
-                                            model = fullImageUrl,
-                                            contentDescription = "Изображение",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop,
-                                            error = painterResource(R.drawable.account_lock) // можно добавить свою заглушку
-                                        )
-
-                                        // Индикатор, что это изображение
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.BottomStart)
-                                                .padding(4.dp)
-                                                .background(Color.Black.copy(alpha = 0.5f))
-                                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                                        ) {
-                                            Text(
-                                                text = "🖼️",
-                                                fontSize = 12.sp,
-                                                color = Color.White
-                                            )
-                                        }
-                                    }
-
-                                    // Если есть подпись к изображению (текст до \n)
-                                    if (lines.size > 2) {
-                                        Text(
-                                            text = lines.dropLast(1).joinToString("\n"),
-                                            fontSize = 14.sp,
-                                            color = if (isOwn) colors.onPrimary else colors.onSurface,
-                                            modifier = Modifier.padding(top = 4.dp)
-                                        )
-                                    }
+                    Column {
+                        // Изображение
+                        Box(
+                            modifier = Modifier
+                                .width(250.dp)
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(
+                                    topStart = if (isOwn) 16.dp else 4.dp,
+                                    topEnd = if (isOwn) 4.dp else 16.dp,
+                                    bottomStart = 16.dp,
+                                    bottomEnd = 16.dp
+                                ))
+                                .background(colors.surfaceVariant)
+                                .clickable {
+                                    val senderName = "${message.surname} ${message.name}".trim()
+                                    onImageClick(fullImageUrl, fileName, senderName, message.createdAt)
                                 }
-                            }
-                            isFile -> {
-                                // Файл
-                                val lines = message.content.split("\n")
-                                val fileName = lines.firstOrNull()?.replace("📎 ", "") ?: "Файл"
-                                Row(
-                                    modifier = Modifier
-                                        .clickable {
-                                            // TODO: Скачать файл
-                                        }
-                                        .padding(vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.InsertDriveFile,
-                                        contentDescription = null,
-                                        tint = if (isOwn) colors.onPrimary else colors.onSurfaceVariant,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = fileName,
-                                        color = if (isOwn) colors.onPrimary else colors.onSurface,
-                                        fontSize = 14.sp,
-                                        maxLines = 2
-                                    )
-                                }
-                            }
-                            else -> {
-                                // Обычный текст
-                                Text(
-                                    text = message.content,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = if (isOwn) colors.onPrimary else colors.onSurface,
-                                    fontSize = 15.sp,
-                                    lineHeight = 20.sp,
-                                    modifier = Modifier.wrapContentWidth()
-                                )
-                            }
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data(fullImageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Изображение",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+
+                        // Текст под изображением (если есть)
+                        if (lines.size > 2) {
+                            Text(
+                                text = lines.dropLast(1).joinToString("\n"),
+                                fontSize = 14.sp,
+                                color = if (isOwn) Color.White else colors.onSurface,
+                                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                            )
                         }
 
                         // Время и статус
                         Row(
                             modifier = Modifier
-                                .wrapContentWidth()
-                                .padding(top = 4.dp),
+                                .fillMaxWidth()
+                                .padding(top = 4.dp, end = 4.dp),
                             horizontalArrangement = Arrangement.End,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -445,26 +410,130 @@ fun MessageItem(
                                 text = formatTime(message.createdAt),
                                 fontSize = 11.sp,
                                 color = if (isOwn) {
-                                    colors.onPrimary.copy(alpha = 0.7f)
+                                    Color.White.copy(alpha = 0.7f)
                                 } else {
                                     colors.onSurfaceVariant.copy(alpha = 0.7f)
                                 }
                             )
-
                             if (isOwn) {
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     imageVector = Icons.Default.Done,
                                     contentDescription = "Отправлено",
-                                    tint = colors.onPrimary.copy(alpha = 0.5f),
+                                    tint = Color.White.copy(alpha = 0.5f),
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
                         }
                     }
+                } else {
+                    // Текст или файл
+                    Surface(
+                        shape = RoundedCornerShape(
+                            topStart = if (isOwn) 16.dp else 4.dp,
+                            topEnd = if (isOwn) 4.dp else 16.dp,
+                            bottomStart = if (isOwn) 16.dp else 12.dp,
+                            bottomEnd = if (isOwn) 12.dp else 16.dp
+                        ),
+                        color = if (isOwn) colors.primary else colors.surfaceVariant,
+                        shadowElevation = 1.dp,
+                        modifier = Modifier.wrapContentWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(
+                                horizontal = 12.dp,
+                                vertical = 8.dp
+                            )
+                        ) {
+                            when {
+                                isFile -> {
+                                    val lines = message.content.split("\n")
+                                    val fileName = lines.firstOrNull()?.replace("📎 ", "") ?: "Файл"
+                                    val fileUrl = lines.getOrNull(1)?.trim() ?: ""
+                                    val fullFileUrl = if (fileUrl.startsWith("/uploads/")) {
+                                        baseUrl + fileUrl
+                                    } else {
+                                        fileUrl
+                                    }
+
+                                    Row(
+                                        modifier = Modifier
+                                            .clickable {
+                                                onFileClick(fullFileUrl, fileName)
+                                            }
+                                            .padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.InsertDriveFile,
+                                            contentDescription = null,
+                                            tint = if (isOwn) colors.onPrimary else colors.onSurfaceVariant,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = fileName,
+                                            color = if (isOwn) colors.onPrimary else colors.onSurface,
+                                            fontSize = 14.sp,
+                                            maxLines = 2
+                                        )
+                                    }
+                                }
+                                else -> {
+                                    val annotatedText = TextFormatter.formatTextWithLinks(message.content)
+                                    Text(
+                                        text = annotatedText,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (isOwn) colors.onPrimary else colors.onSurface,
+                                        fontSize = 15.sp,
+                                        lineHeight = 20.sp,
+                                        modifier = Modifier
+                                            .wrapContentWidth()
+                                            .clickable {
+                                                // Обработка клика по ссылке
+                                                annotatedText.getStringAnnotations("URL", 0, annotatedText.length)
+                                                    .firstOrNull()?.let { annotation ->
+                                                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
+                                                        intent.data = android.net.Uri.parse(annotation.item)
+                                                        context.startActivity(intent)
+                                                    }
+                                            }
+                                    )
+                                }
+                            }
+
+                            // Время и статус
+                            Row(
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .padding(top = 4.dp),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = formatTime(message.createdAt),
+                                    fontSize = 11.sp,
+                                    color = if (isOwn) {
+                                        colors.onPrimary.copy(alpha = 0.7f)
+                                    } else {
+                                        colors.onSurfaceVariant.copy(alpha = 0.7f)
+                                    }
+                                )
+                                if (isOwn) {
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.Done,
+                                        contentDescription = "Отправлено",
+                                        tint = colors.onPrimary.copy(alpha = 0.5f),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
 
-                if (isOwn) {
+                if (isOwn && !isImage) {
                     Spacer(modifier = Modifier.width(34.dp))
                 }
             }
@@ -598,96 +667,5 @@ fun MessageInput(
                 }
             }
         }
-    }
-}
-
-// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
-// В конце файла MessageScreen.kt добавляем/исправляем
-
-// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
-
-fun formatDateHeader(dateString: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
-        val date = inputFormat.parse(dateString) ?: return dateString
-
-        val today = Calendar.getInstance()
-        val messageDate = Calendar.getInstance().apply {
-            time = date
-        }
-
-        // Русские названия месяцев
-        val monthNames = arrayOf(
-            "января", "февраля", "марта", "апреля", "мая", "июня",
-            "июля", "августа", "сентября", "октября", "ноября", "декабря"
-        )
-
-        when {
-            today.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) &&
-                    today.get(Calendar.DAY_OF_YEAR) == messageDate.get(Calendar.DAY_OF_YEAR) -> "Сегодня"
-
-            today.get(Calendar.YEAR) == messageDate.get(Calendar.YEAR) &&
-                    today.get(Calendar.DAY_OF_YEAR) - messageDate.get(Calendar.DAY_OF_YEAR) == 1 -> "Вчера"
-
-            else -> {
-                val day = messageDate.get(Calendar.DAY_OF_MONTH)
-                val month = monthNames[messageDate.get(Calendar.MONTH)]
-                val year = messageDate.get(Calendar.YEAR)
-                val currentYear = today.get(Calendar.YEAR)
-
-                if (year == currentYear) {
-                    "$day $month"
-                } else {
-                    "$day $month $year"
-                }
-            }
-        }
-    } catch (e: Exception) {
-        dateString
-    }
-}
-
-fun formatMessageDate(dateString: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
-        val date = inputFormat.parse(dateString) ?: return dateString
-
-        val calendar = Calendar.getInstance().apply {
-            time = date
-        }
-
-        val monthNames = arrayOf(
-            "января", "февраля", "марта", "апреля", "мая", "июня",
-            "июля", "августа", "сентября", "октября", "ноября", "декабря"
-        )
-
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-        val month = monthNames[calendar.get(Calendar.MONTH)]
-        val year = calendar.get(Calendar.YEAR)
-        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-
-        if (year == currentYear) {
-            "$day $month"
-        } else {
-            "$day $month $year"
-        }
-    } catch (e: Exception) {
-        dateString
-    }
-}
-
-fun formatTime(dateString: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
-        val date = inputFormat.parse(dateString) ?: return dateString
-
-        val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        outputFormat.timeZone = TimeZone.getDefault()
-        outputFormat.format(date)
-    } catch (e: Exception) {
-        dateString
     }
 }

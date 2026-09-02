@@ -1,8 +1,5 @@
-// screen/Chat/Message/ImageViewerScreen.kt
 package com.example.myapplication.screen.Chat.Message
 
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,39 +13,66 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
+import com.example.myapplication.utils.DateUtils
 import com.example.myapplication.utils.DownloadUtils
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageViewerScreen(
     navController: NavController,
     imageUrl: String,
-    fileName: String = "image"
+    fileName: String,
+    senderName: String = "",
+    sentAt: String = ""
 ) {
     val context = LocalContext.current
-    var isFullscreen by remember { mutableStateOf(false) }
     var isDownloading by remember { mutableStateOf(false) }
+
+    // Форматируем дату и время на русском языке
+    val formattedDate = remember(sentAt) {
+        if (sentAt.isNotEmpty()) {
+            DateUtils.formatFullDateTime(sentAt)
+        } else ""
+    }
 
     Scaffold(
         containerColor = Color.Black,
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = fileName.takeLast(30),
-                        color = Color.White,
-                        maxLines = 1
-                    )
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        // Имя отправителя
+                        Text(
+                            text = if (senderName.isNotEmpty()) senderName else "Изображение",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1
+                        )
+                        // Дата и время
+                        if (formattedDate.isNotEmpty()) {
+                            Text(
+                                text = formattedDate,
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 12.sp,
+                                maxLines = 1
+                            )
+                        }
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -75,7 +99,6 @@ fun ImageViewerScreen(
                         onClick = {
                             if (!isDownloading) {
                                 isDownloading = true
-                                // Скачиваем изображение
                                 DownloadUtils.downloadImage(context, imageUrl, fileName) {
                                     isDownloading = false
                                 }
